@@ -1,0 +1,4 @@
+{"parentUuid":null,"isSidechain":false,"type":"user","message":{"role":"user","content":"Refactor the API client"},"uuid":"u1","timestamp":"2026-10-02T09:00:00.000Z","userType":"external","entrypoint":"claude-vscode","cwd":"C:\\work\\demo-app","version":"2.1.289","gitBranch":"feature/login","sessionId":"22222222-2222-4222-8222-222222222222"}
+{"type":"ai-title","aiTitle":"Refactor API client","sessionId":"22222222-2222-4222-8222-222222222222"}
+{"type":"custom-title","customTitle":"api-refactor","sessionId":"22222222-2222-4222-8222-222222222222"}
+{"parentUuid":"u1","isSidechain":false,"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"t1","name":"Bash","input":{}}],"stop_reason":"tool_use"},"uuid":"a1","timestamp":"2026-10-02T09:01:00.000Z","userType":"external","entrypoint":"claude-vscode","cwd":"C:\\work\\demo-app","version":"2.1.289","gitBranch":"feature/login","sessionId":"22222222-2222-4222-8222-222222222222"}

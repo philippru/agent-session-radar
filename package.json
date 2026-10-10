@@ -2,22 +2,126 @@
   "name": "session-radar",
   "displayName": "Session Radar",
   "description": "Overview of all your AI coding agent sessions (Claude Code, Codex, ...)",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.140.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "sessionRadar",
+          "title": "Session Radar",
+          "icon": "resources/radar.svg"
+        }
+      ]
+    },
+    "views": {
+      "sessionRadar": [
+        {
+          "id": "sessionRadar.sessions",
+          "name": "Sessions",
+          "icon": "resources/radar.svg",
+          "contextualTitle": "Session Radar"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "sessionRadar.sessions",
+        "contents": "Keine Sessions gefunden.\n[Aktualisieren](command:sessionRadar.refresh)"
+      }
+    ],
     "commands": [
       {
-        "command": "session-radar.helloWorld",
-        "title": "Hello World"
+        "command": "sessionRadar.refresh",
+        "title": "Aktualisieren",
+        "category": "Session Radar",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "sessionRadar.scopeWorkspace",
+        "title": "Nur aktuellen Workspace zeigen",
+        "category": "Session Radar",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "sessionRadar.scopeAll",
+        "title": "Alle Projekte zeigen",
+        "category": "Session Radar",
+        "icon": "$(filter-filled)"
+      },
+      {
+        "command": "sessionRadar.open",
+        "title": "Öffnen / Fortsetzen",
+        "category": "Session Radar"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "sessionRadar.scopeWorkspace",
+          "when": "view == sessionRadar.sessions && sessionRadar.scope != workspace",
+          "group": "navigation@1"
+        },
+        {
+          "command": "sessionRadar.scopeAll",
+          "when": "view == sessionRadar.sessions && sessionRadar.scope == workspace",
+          "group": "navigation@1"
+        },
+        {
+          "command": "sessionRadar.refresh",
+          "when": "view == sessionRadar.sessions",
+          "group": "navigation@9"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "sessionRadar.open",
+          "when": "false"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Session Radar",
+      "properties": {
+        "sessionRadar.claudeDir": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Claude-Code-Konfigurationsordner. Leer = `$CLAUDE_CONFIG_DIR` bzw. `~/.claude`."
+        },
+        "sessionRadar.maxAgeDays": {
+          "type": "number",
+          "default": 30,
+          "minimum": 1,
+          "description": "Sessions, deren Transkript länger als so viele Tage nicht geändert wurde, werden ignoriert."
+        },
+        "sessionRadar.staleAfterHours": {
+          "type": "number",
+          "default": 24,
+          "minimum": 1,
+          "description": "Ab so vielen Stunden ohne Aktivität gilt eine Session als \"Alt\"."
+        },
+        "sessionRadar.runningTimeoutMinutes": {
+          "type": "number",
+          "default": 30,
+          "minimum": 1,
+          "description": "Meldet eine Session so lange \"läuft\" ohne neue Aktivität, gilt sie als hängengeblieben bzw. fertig."
+        },
+        "sessionRadar.unreadAsWaiting": {
+          "type": "boolean",
+          "default": true,
+          "description": "Fertige, noch nicht angesehene Antworten als \"Wartet auf mich\" zählen."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
@@ -31,22 +135,38 @@
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "test:unit": "tsc -p . --outDir out && mocha --ui tdd \"out/test/unit/**/*.test.js\""
   },
   "devDependencies": {
-    "@types/vscode": "^1.140.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
-    "typescript-eslint": "^8.61.1",
-    "eslint": "^10.5.0",
+    "@types/vscode": "^1.140.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0",
     "esbuild": "^0.28.1",
+    "eslint": "^10.5.0",
+    "mocha": "^11.8.0",
     "npm-run-all": "^4.1.5",
     "typescript": "^6.0.3",
-    "@vscode/test-cli": "^0.0.15",
-    "@vscode/test-electron": "^3.0.0"
+    "typescript-eslint": "^8.61.1"
   },
   "overrides": {
     "diff": "^8.0.4",
     "serialize-javascript": "^7.0.6"
-  }
+  },
+  "publisher": "local",
+  "license": "UNLICENSED",
+  "private": true,
+  "keywords": [
+    "claude",
+    "claude code",
+    "codex",
+    "ai agents",
+    "sessions"
+  ],
+  "extensionKind": [
+    "ui",
+    "workspace"
+  ]
 }

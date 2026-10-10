@@ -1,0 +1,6 @@
+{"type":"some-future-entry","foo":1}
+{"parentUuid":null,"isSidechain":false,"type":"user","message":{"role":"user","content":"Write release notes"},"uuid":"u1","timestamp":"2026-10-04T11:00:00.000Z","userType":"external","entrypoint":"cli","cwd":"C:\\work\\other-repo","version":"2.1.292","gitBranch":"main","sessionId":"44444444-4444-4444-8444-444444444444"}
+this is not json
+{"type":"ai-title","aiTitle":"Release notes","sessionId":"44444444-4444-4444-8444-444444444444"}
+{"parentUuid":"u1","isSidechain":false,"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"ok"}],"stop_reason":"end_turn"},"uuid":"a1","timestamp":"2026-10-04T11:05:00.000Z","userType":"external","entrypoint":"cli","cwd":"C:\\work\\other-repo","version":"2.1.292","gitBranch":"main","sessionId":"44444444-4444-4444-8444-444444444444"}
+{"truncated": 

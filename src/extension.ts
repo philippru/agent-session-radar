@@ -1,26 +1,76 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+// Entry point. VS Code calls activate() once (see activationEvents in package.json);
+// everything registered in context.subscriptions is disposed automatically on deactivate.
+
+import * as path from 'path';
 import * as vscode from 'vscode';
+import { AnnotationStore } from './core/annotations';
+import { radarHome, resolveClaudeDir, resolveCodexDir } from './core/paths';
+import { SessionStore, StoreSettings } from './core/SessionStore';
+import { ClaudeCodeProvider } from './providers/claude/ClaudeCodeProvider';
+import { CodexProvider } from './providers/codex/CodexProvider';
+import { registerCommands } from './ui/commands';
+import { Scope, SessionTreeProvider } from './ui/SessionTreeProvider';
+import { VsCodeResumeHost } from './ui/vscodeHosts';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+/** Periodic refresh for time-based transitions ("vor X Min.", running → idle, idle → alt). */
+const TICK_MS = 30_000;
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "session-radar" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('session-radar.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Session Radar!');
-	});
-
-	context.subscriptions.push(disposable);
+function readSettings(): StoreSettings {
+	const c = vscode.workspace.getConfiguration('sessionRadar');
+	return {
+		staleAfterMs: c.get<number>('staleAfterHours', 24) * 3600_000,
+		runningTimeoutMs: c.get<number>('runningTimeoutMinutes', 30) * 60_000,
+		transcriptRunningMs: 5 * 60_000,
+		unreadAsWaiting: c.get<boolean>('unreadAsWaiting', true),
+	};
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {}
+export async function activate(context: vscode.ExtensionContext) {
+	const config = vscode.workspace.getConfiguration('sessionRadar');
+	const claudeDir = resolveClaudeDir(config.get<string>('claudeDir'));
+
+	const providers = [
+		new ClaudeCodeProvider({ claudeDir, maxAgeDays: config.get<number>('maxAgeDays', 30) }),
+		new CodexProvider({ codexDir: resolveCodexDir() }),
+	];
+	const annotations = new AnnotationStore(path.join(radarHome(), 'annotations.json'));
+	const store = new SessionStore(providers, annotations, readSettings);
+	context.subscriptions.push(store);
+
+	const tree = new SessionTreeProvider(store);
+	tree.scope = context.workspaceState.get<Scope>('sessionRadar.scope', 'all');
+	const view = vscode.window.createTreeView('sessionRadar.sessions', { treeDataProvider: tree, showCollapseAll: true });
+	context.subscriptions.push(tree, view);
+
+	const updateView = () => {
+		tree.refresh();
+		const waiting = tree.visibleSessions().filter(s => s.status === 'waiting').length;
+		view.badge = waiting > 0 ? { value: waiting, tooltip: `${waiting} Session(s) warten auf dich` } : undefined;
+		view.message = tree.scope === 'workspace' ? 'Filter: nur aktueller Workspace' : undefined;
+	};
+	context.subscriptions.push(store.onDidChange(updateView));
+	void vscode.commands.executeCommand('setContext', 'sessionRadar.scope', tree.scope);
+
+	registerCommands(context, { store, tree, view, host: new VsCodeResumeHost(), updateView });
+
+	// Settings changes that only affect status derivation → recompute; others need a reload.
+	context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
+		if (e.affectsConfiguration('sessionRadar.claudeDir') || e.affectsConfiguration('sessionRadar.maxAgeDays')) {
+			void vscode.window.showInformationMessage('Session Radar: Bitte Fenster neu laden, damit die Änderung wirkt.', 'Neu laden')
+				.then(choice => choice && vscode.commands.executeCommand('workbench.action.reloadWindow'));
+		} else if (e.affectsConfiguration('sessionRadar')) {
+			store.recompute();
+		}
+	}));
+
+	const timer = setInterval(() => void store.refresh(), TICK_MS);
+	context.subscriptions.push({ dispose: () => clearInterval(timer) });
+
+	await annotations.load();
+	await annotations.ensureSeenBaseline(Date.now()).catch(() => undefined);
+	await store.refresh();
+}
+
+export function deactivate() {
+	// everything is disposed via context.subscriptions
+}
