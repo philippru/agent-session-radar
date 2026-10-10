@@ -324,7 +324,7 @@
     "lint": "eslint src",
     "test": "vscode-test",
     "test:unit": "tsc -p . --outDir out && mocha --ui tdd \"out/test/unit/**/*.test.js\"",
-    "package:vsix": "vsce package --no-dependencies --allow-missing-repository --no-rewrite-relative-links -o session-radar.vsix"
+    "package:vsix": "vsce package --no-dependencies -o session-radar.vsix"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -346,6 +346,14 @@
   },
   "publisher": "local",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/philippru/session-radar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/philippru/session-radar/issues"
+  },
+  "homepage": "https://github.com/philippru/session-radar#readme",
   "private": true,
   "keywords": [
     "claude",

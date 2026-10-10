@@ -48,7 +48,7 @@ SESSION RADAR                         ✓✓  ⏷  ⟳
 Requirements: VS Code ≥ 1.140, Node.js ≥ 20 (for the hooks and for building).
 
 ```powershell
-git clone <repository-url>
+git clone https://github.com/philippru/session-radar.git
 cd session-radar
 npm install
 npm run package:vsix                                 # creates session-radar.vsix
