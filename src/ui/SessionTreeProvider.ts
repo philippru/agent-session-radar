@@ -111,7 +111,12 @@ export class SessionTreeProvider implements vscode.TreeDataProvider<Node> {
 		const provider = this.store.provider(s.agent);
 		item.iconPath = new vscode.ThemeIcon(provider?.iconId ?? 'comment-discussion');
 		item.tooltip = this.tooltip(s, provider?.displayName ?? s.agent, now);
-		item.contextValue = `session.${s.agent}${s.archived ? '.archived' : ''}${s.transcriptPath ? '.transcript' : ''}`;
+		// Matched by `viewItem =~ /…/` in package.json menus.
+		item.contextValue = `session;agent=${s.agent};status=${s.status};reason=${s.waitingReason ?? ''};archived=${s.archived ? 1 : 0};transcript=${s.transcriptPath ? 1 : 0}`;
+		if (s.archived) {
+			parts.unshift('🗄️ archiviert');
+			item.description = parts.join(' · ');
+		}
 		item.command = { command: 'sessionRadar.open', title: 'Öffnen', arguments: [s] };
 		return item;
 	}

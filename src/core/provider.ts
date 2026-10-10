@@ -20,6 +20,10 @@ export interface WatchHost {
 
 /** UI operations a provider can use to resume or focus a session. */
 export interface ResumeHost {
+	/** URI scheme of the running editor, e.g. "vscode" or "vscode-insiders". */
+	readonly uriScheme: string;
+	/** Is an extension with this id installed? */
+	hasExtension(id: string): boolean;
 	/** Is `dir` inside one of the folders open in the current window? */
 	isInCurrentWorkspace(dir: string): boolean;
 	/** Open a URI with the OS / VS Code URI handler (e.g. vscode://publisher.ext/...). */
@@ -59,8 +63,11 @@ export interface SessionProvider extends Disposable {
 	/** Derive the status of a session. Providers may override the default derivation. */
 	getStatus(session: AgentSession, ctx: StatusContext): DerivedStatus;
 
-	/** Resume or focus the session. */
+	/** Resume or focus the session (click in the tree). */
 	resume(session: AgentSession, host: ResumeHost): Promise<void>;
+
+	/** Optional: explicitly resume in a new terminal (context menu). Defaults to resume(). */
+	resumeInTerminal?(session: AgentSession, host: ResumeHost): Promise<void>;
 }
 
 /** Base class with the default status derivation. */

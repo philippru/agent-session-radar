@@ -25,6 +25,8 @@ interface CacheEntry {
 }
 
 const SESSION_ID_RE = /^[0-9a-fA-F-]{8,64}$/;
+/** Extension id of the official Claude Code VS Code extension (also its URI handler authority). */
+const CLAUDE_VSCODE_EXTENSION = 'anthropic.claude-code';
 
 export class ClaudeCodeProvider extends BaseSessionProvider {
 	readonly agent = 'claude-code' as const;
@@ -95,7 +97,55 @@ export class ClaudeCodeProvider extends BaseSessionProvider {
 		return { dispose: () => subs.forEach(s => s.dispose()) };
 	}
 
+	/**
+	 * Focus or resume a session:
+	 * - VS Code session of this window's workspace → documented deep link
+	 *   vscode://anthropic.claude-code/open?session=<id> (focuses an open tab, else resumes it)
+	 * - VS Code session of another project → open/focus that project's window, or terminal
+	 * - CLI session → show its integrated terminal if we find it, else `claude --resume <id>`
+	 */
 	async resume(session: AgentSession, host: ResumeHost): Promise<void> {
+		const proc = session.signals.process;
+		const live = proc?.alive === true;
+
+		if (session.surface === 'vscode' && host.hasExtension(CLAUDE_VSCODE_EXTENSION)) {
+			if (host.isInCurrentWorkspace(session.project)) {
+				await host.openUri(`${host.uriScheme}://${CLAUDE_VSCODE_EXTENSION}/open?session=${encodeURIComponent(session.id)}`);
+				return;
+			}
+			const choice = await host.pick('Diese Session gehört zu einem anderen Projekt', [
+				{ id: 'window', label: '$(window) Projektfenster öffnen bzw. fokussieren', detail: session.project },
+				{ id: 'terminal', label: '$(terminal) Hier im Terminal fortsetzen (claude --resume)' },
+			]);
+			if (choice === 'window') {
+				await host.openFolder(session.project);
+			} else if (choice === 'terminal') {
+				await this.resumeInTerminal(session, host);
+			}
+			return;
+		}
+
+		if (live && proc?.pid && await host.focusTerminalOfPid(proc.pid)) {
+			return;
+		}
+		await this.resumeInTerminal(session, host);
+	}
+
+	/** `claude --resume <id>` in a new integrated terminal, with a warning if the session is live. */
+	async resumeInTerminal(session: AgentSession, host: ResumeHost): Promise<void> {
+		const proc = session.signals.process;
+		if (proc?.alive) {
+			const where = session.surface === 'vscode' ? 'in einem VS-Code-Tab' : session.surface === 'desktop' ? 'in der Desktop-App' : 'in einem anderen Terminal';
+			const ok = await host.confirm(
+				`Diese Session läuft bereits ${where} (PID ${proc.pid}). Ein zweiter Prozess auf derselben Session kann zu durcheinandergeratenen Verläufen führen. Trotzdem im Terminal fortsetzen?`,
+				'Trotzdem fortsetzen');
+			if (!ok) {
+				return;
+			}
+		}
+		if (!SESSION_ID_RE.test(session.id)) {
+			return; // never pass anything unexpected to a shell
+		}
 		host.runInTerminal({
 			name: `Claude: ${session.label ?? session.title}`.slice(0, 60),
 			cwd: session.project,

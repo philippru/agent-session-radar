@@ -23,6 +23,14 @@ export class VsCodeWatchHost implements WatchHost {
 }
 
 export class VsCodeResumeHost implements ResumeHost {
+	get uriScheme(): string {
+		return vscode.env.uriScheme;
+	}
+
+	hasExtension(id: string): boolean {
+		return vscode.extensions.getExtension(id) !== undefined;
+	}
+
 	isInCurrentWorkspace(dir: string): boolean {
 		return (vscode.workspace.workspaceFolders ?? []).some(f => isPathInside(dir, f.uri.fsPath));
 	}
