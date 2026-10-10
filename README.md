@@ -175,8 +175,8 @@ press `Ctrl+R` in the Development Host.
 ### Releasing
 
 1. Bump `version` in `package.json` and add an entry to `CHANGELOG.md`.
-2. VS Code Marketplace: `npx vsce login philippru` once (with an Azure DevOps personal access token,
-   scope *Marketplace → Manage*), then `npm run publish:marketplace`.
+2. VS Code Marketplace: `npx vsce login <publisher>` once, with the `publisher` from `package.json` and an
+   Azure DevOps personal access token (scope *Marketplace → Manage*), then `npm run publish:marketplace`.
 3. Open VSX: set `OVSX_PAT` to an Open VSX access token, then `npm run publish:openvsx`.
 4. Tag the release: `git tag v<version> && git push --tags`.
 
