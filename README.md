@@ -78,7 +78,7 @@ In der Session-Radar-Ansicht: `…` → **Claude-Code-Hooks installieren…**
 
 Die Hooks wirken für neu gestartete bzw. fortgesetzte Sessions. Entfernen geht genauso über
 **Claude-Code-Hooks entfernen…**: Diff, Backup, nur die eigenen Einträge werden gelöscht.
-Ohne Hooks zeigt die Ansicht im Titel den Hinweis „ohne Hooks“.
+Ohne Hooks heißt die Ansicht „Sessions (ohne Hooks)“.
 
 ## Bedienung
 

@@ -69,7 +69,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		const waiting = tree.visibleSessions().filter(s => s.status === 'waiting').length;
 		view.badge = waiting > 0 ? { value: waiting, tooltip: `${waiting} Session(s) warten auf dich` } : undefined;
 		view.message = tree.scope === 'workspace' ? 'Filter: nur aktueller Workspace' : undefined;
-		view.description = hooksActive ? undefined : 'ohne Hooks';
+		// Part of the title: a view description is not rendered when the view is alone in its container.
+		view.title = hooksActive ? 'Sessions' : 'Sessions (ohne Hooks)';
 	};
 	context.subscriptions.push(store.onDidChange(updateView));
 	void vscode.commands.executeCommand('setContext', 'sessionRadar.scope', tree.scope);
