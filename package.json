@@ -357,12 +357,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/philippru/session-radar.git"
+    "url": "https://github.com/philippru/agent-session-radar.git"
   },
   "bugs": {
-    "url": "https://github.com/philippru/session-radar/issues"
+    "url": "https://github.com/philippru/agent-session-radar/issues"
   },
-  "homepage": "https://github.com/philippru/session-radar#readme",
+  "homepage": "https://github.com/philippru/agent-session-radar#readme",
   "private": true,
   "keywords": [
     "claude",

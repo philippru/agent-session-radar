@@ -58,8 +58,8 @@ then uninstall the extension in VS Code. Optionally delete `~/.session-radar`.
 ### Building from source
 
 ```powershell
-git clone https://github.com/philippru/session-radar.git
-cd session-radar
+git clone https://github.com/philippru/agent-session-radar.git
+cd agent-session-radar
 npm install
 npm run package:vsix                                 # creates agent-session-radar.vsix
 code --install-extension .\agent-session-radar.vsix
