@@ -34,6 +34,12 @@ export interface StatusSignals {
 	/** Live process information, if a process registry is available. */
 	process?: {
 		alive: boolean;
+		/**
+		 * false = the agent has a process registry, but this session is not in it (process
+		 * exited). Treated as "ended" only after a grace period, because older agent versions
+		 * may not register at all.
+		 */
+		registered?: boolean;
 		/** Agent-reported state, e.g. 'busy' | 'idle' for Claude Code. Unknown values are kept. */
 		state?: string;
 		/** When the process last reported its state (ms). */

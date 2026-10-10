@@ -79,6 +79,13 @@ suite('deriveStatus – process registry', () => {
 		assert.strictEqual(deriveStatus(sig, ctx()).status, 'idle');
 	});
 
+	test('not in registry: ended, but only after a grace period', () => {
+		const fresh: StatusSignals = { lastActivity: NOW - 1 * MIN, turnInProgress: true, process: { alive: false, registered: false } };
+		assert.deepStrictEqual(deriveStatus(fresh, ctx()), { status: 'running', source: 'transcript' });
+		const old: StatusSignals = { lastActivity: NOW - 10 * MIN, turnEndedAt: NOW - 10 * MIN, process: { alive: false, registered: false } };
+		assert.deepStrictEqual(deriveStatus(old, ctx()), { status: 'idle', source: 'process' });
+	});
+
 	test('unknown process state is ignored (falls back to transcript)', () => {
 		const sig: StatusSignals = { lastActivity: NOW - 1 * MIN, turnInProgress: true, process: { alive: true, state: 'something-new', stateSince: NOW - 1 * MIN } };
 		assert.deepStrictEqual(deriveStatus(sig, ctx()), { status: 'running', source: 'transcript' });

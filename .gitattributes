@@ -1,0 +1,4 @@
+# Normalize line endings in the repo; fixtures stay LF.
+* text=auto eol=lf
+*.svg text eol=lf
+*.vsix binary

@@ -3,6 +3,7 @@ import * as path from 'path';
 import { AgentSession, baseName } from '../../core/model';
 import { BaseSessionProvider, Disposable, ResumeHost, WatchHost } from '../../core/provider';
 import { mapLimit } from '../../core/util';
+import { AliveCheck, ClaudeProcessEntry, isProcessAlive, readProcessRegistry } from './processRegistry';
 import { TranscriptInfo, parseTranscript, pickTitle, surfaceFromEntrypoint } from './transcript';
 
 export interface ClaudeCodeProviderOptions {
@@ -10,6 +11,8 @@ export interface ClaudeCodeProviderOptions {
 	claudeDir: string;
 	/** Ignore transcripts not modified within this many days. */
 	maxAgeDays: number;
+	/** Injectable for tests. */
+	isAlive?: AliveCheck;
 }
 
 interface CacheEntry {
@@ -35,6 +38,11 @@ export class ClaudeCodeProvider extends BaseSessionProvider {
 		return path.join(this.options.claudeDir, 'projects');
 	}
 
+	/** Live process registry (<pid>.json per running process). */
+	get processRegistryDir(): string {
+		return path.join(this.options.claudeDir, 'sessions');
+	}
+
 	async isAvailable(): Promise<boolean> {
 		try {
 			return (await fs.stat(this.projectsDir)).isDirectory();
@@ -44,12 +52,19 @@ export class ClaudeCodeProvider extends BaseSessionProvider {
 	}
 
 	async discover(): Promise<AgentSession[]> {
-		const files = await this.listTranscripts();
+		const [files, registry] = await Promise.all([
+			this.listTranscripts(),
+			readProcessRegistry(this.processRegistryDir, this.options.isAlive ?? isProcessAlive),
+		]);
 		const seen = new Set<string>();
 		const sessions = await mapLimit(files, 8, async (file) => {
 			seen.add(file.path);
 			const info = await this.transcriptInfo(file.path, file.size, file.mtimeMs);
-			return info ? this.toSession(file.path, file.mtimeMs, info) : undefined;
+			const session = info ? this.toSession(file.path, file.mtimeMs, info) : undefined;
+			if (session && info && registry) {
+				this.applyProcess(session, info, registry.get(session.id));
+			}
+			return session;
 		});
 		// Drop cache entries of deleted/aged-out transcripts.
 		for (const key of this.cache.keys()) {
@@ -61,8 +76,12 @@ export class ClaudeCodeProvider extends BaseSessionProvider {
 	}
 
 	watch(host: WatchHost, onChange: () => void): Disposable {
-		// Only top-level transcripts; subagent transcripts live in <session>/subagents/.
-		return host.watch(this.projectsDir, '*/*.jsonl', () => onChange());
+		const subs = [
+			// Only top-level transcripts; subagent transcripts live in <session>/subagents/.
+			host.watch(this.projectsDir, '*/*.jsonl', () => onChange()),
+			host.watch(this.processRegistryDir, '*.json', () => onChange()),
+		];
+		return { dispose: () => subs.forEach(s => s.dispose()) };
 	}
 
 	async resume(session: AgentSession, host: ResumeHost): Promise<void> {
@@ -71,6 +90,24 @@ export class ClaudeCodeProvider extends BaseSessionProvider {
 			cwd: session.project,
 			command: `claude --resume ${session.id}`,
 		});
+	}
+
+	/** Attach live process info. A registry without this session means: process has exited. */
+	private applyProcess(session: AgentSession, info: TranscriptInfo, proc: ClaudeProcessEntry | undefined): void {
+		if (!proc) {
+			session.signals.process = { alive: false, registered: false };
+			return;
+		}
+		session.signals.process = {
+			alive: proc.alive,
+			registered: true,
+			state: proc.status,
+			stateSince: proc.statusSince,
+			pid: proc.pid,
+		};
+		if (proc.userName && !info.customTitle) {
+			session.title = proc.userName;
+		}
 	}
 
 	/** All top-level <projects>/<dir>/<uuid>.jsonl files modified within maxAgeDays. */

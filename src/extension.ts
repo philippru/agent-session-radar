@@ -1,19 +1,23 @@
 // Entry point. VS Code calls activate() once (see activationEvents in package.json);
 // everything registered in context.subscriptions is disposed automatically on deactivate.
 
+import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { AnnotationStore } from './core/annotations';
 import { radarHome, resolveClaudeDir, resolveCodexDir } from './core/paths';
 import { SessionStore, StoreSettings } from './core/SessionStore';
+import { debounce } from './core/util';
 import { ClaudeCodeProvider } from './providers/claude/ClaudeCodeProvider';
 import { CodexProvider } from './providers/codex/CodexProvider';
 import { registerCommands } from './ui/commands';
 import { Scope, SessionTreeProvider } from './ui/SessionTreeProvider';
-import { VsCodeResumeHost } from './ui/vscodeHosts';
+import { VsCodeResumeHost, VsCodeWatchHost } from './ui/vscodeHosts';
 
 /** Periodic refresh for time-based transitions ("vor X Min.", running → idle, idle → alt). */
 const TICK_MS = 30_000;
+const DEBOUNCE_MS = 400;
+const DEBOUNCE_MAX_MS = 2_000;
 
 function readSettings(): StoreSettings {
 	const c = vscode.workspace.getConfiguration('sessionRadar');
@@ -27,6 +31,8 @@ function readSettings(): StoreSettings {
 
 export async function activate(context: vscode.ExtensionContext) {
 	const config = vscode.workspace.getConfiguration('sessionRadar');
+	// Our own status layer; must exist before we put a watcher on it.
+	await fs.mkdir(radarHome(), { recursive: true }).catch(() => undefined);
 	const claudeDir = resolveClaudeDir(config.get<string>('claudeDir'));
 
 	const providers = [
@@ -63,6 +69,17 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	}));
 
+	// File watchers (no polling for content changes); bursts are debounced.
+	const scheduleRefresh = debounce(() => void store.refresh(), DEBOUNCE_MS, DEBOUNCE_MAX_MS);
+	context.subscriptions.push({ dispose: () => scheduleRefresh.cancel() });
+	const watchHost = new VsCodeWatchHost();
+	for (const provider of providers) {
+		context.subscriptions.push(provider.watch(watchHost, scheduleRefresh));
+	}
+	context.subscriptions.push(watchHost.watch(radarHome(), 'annotations.json', scheduleRefresh));
+
+	// A timer is still needed for what no file event signals: process death (crash) and
+	// time-based transitions. Thanks to the size/mtime cache a tick costs only a few stat calls.
 	const timer = setInterval(() => void store.refresh(), TICK_MS);
 	context.subscriptions.push({ dispose: () => clearInterval(timer) });
 

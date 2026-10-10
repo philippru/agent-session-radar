@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { AnnotationStore, parseAnnotations } from '../../core/annotations';
-import { formatRelative, isPathInside, mapLimit } from '../../core/util';
+import { debounce, formatRelative, isPathInside, mapLimit } from '../../core/util';
 
 suite('util', () => {
 	test('isPathInside is case-insensitive on Windows and slash-agnostic', () => {
@@ -19,6 +19,23 @@ suite('util', () => {
 		assert.strictEqual(formatRelative(now - 5 * 60_000, now), 'vor 5 Min.');
 		assert.strictEqual(formatRelative(now - 3 * 3600_000, now), 'vor 3 Std.');
 		assert.strictEqual(formatRelative(now - 26 * 3600_000, now), 'vor 1 Tag');
+	});
+
+	test('debounce coalesces bursts but honors maxWait', async () => {
+		let calls = 0;
+		const d = debounce(() => calls++, 30, 80);
+		d(); d(); d();
+		await new Promise(r => setTimeout(r, 60));
+		assert.strictEqual(calls, 1);
+		// constant stream every 10 ms for 150 ms: maxWait forces intermediate runs
+		calls = 0;
+		const start = Date.now();
+		while (Date.now() - start < 150) {
+			d();
+			await new Promise(r => setTimeout(r, 10));
+		}
+		d.cancel();
+		assert.ok(calls >= 1, `expected forced runs, got ${calls}`);
 	});
 
 	test('mapLimit preserves order', async () => {

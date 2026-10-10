@@ -12,23 +12,34 @@ export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) =>
 	return results;
 }
 
-/** Trailing-edge debounce. */
-export function debounce(fn: () => void, waitMs: number): { (): void; cancel(): void } {
+/**
+ * Trailing-edge debounce. With `maxWaitMs`, `fn` runs at the latest that long after the
+ * first call of a burst, so a constant event stream (an agent writing its transcript)
+ * cannot postpone the update forever.
+ */
+export function debounce(fn: () => void, waitMs: number, maxWaitMs?: number): { (): void; cancel(): void } {
 	let timer: ReturnType<typeof setTimeout> | undefined;
+	let burstStart: number | undefined;
+	const run = () => {
+		timer = undefined;
+		burstStart = undefined;
+		fn();
+	};
 	const debounced = () => {
+		const now = Date.now();
+		burstStart ??= now;
 		if (timer) {
 			clearTimeout(timer);
 		}
-		timer = setTimeout(() => {
-			timer = undefined;
-			fn();
-		}, waitMs);
+		const delay = maxWaitMs === undefined ? waitMs : Math.max(0, Math.min(waitMs, burstStart + maxWaitMs - now));
+		timer = setTimeout(run, delay);
 	};
 	debounced.cancel = () => {
 		if (timer) {
 			clearTimeout(timer);
-			timer = undefined;
 		}
+		timer = undefined;
+		burstStart = undefined;
 	};
 	return debounced;
 }

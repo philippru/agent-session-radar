@@ -64,8 +64,12 @@ export function deriveStatus(sig: StatusSignals, ctx: StatusContext): DerivedSta
 		const at = p.stateSince ?? sig.lastActivity;
 		let phase: Phase | undefined;
 		if (!p.alive) {
-			// A dead process is authoritative regardless of timestamps.
-			phase = { kind: 'ended', at: Number.MAX_SAFE_INTEGER };
+			// A dead process is authoritative regardless of timestamps. A session that is merely
+			// missing from the registry gets a grace period (registry lag, older agent versions).
+			const recentlyActive = ctx.now - sig.lastActivity < ctx.transcriptRunningMs;
+			if (p.registered !== false || !recentlyActive) {
+				phase = { kind: 'ended', at: Number.MAX_SAFE_INTEGER };
+			}
 		} else if (p.state === 'busy') {
 			phase = { kind: 'running', at };
 		} else if (p.state === 'idle') {
