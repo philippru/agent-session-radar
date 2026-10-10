@@ -5,11 +5,24 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			// Opens the Dev Host with a real working folder, so the extension can be tested
-			// against real Claude Code sessions. The folder is asked for on each start
-			// (default: frnis-ai). Session Radar itself reads from ~/.claude, not from this folder;
-			// the folder only matters for the "current workspace only" filter.
-			"name": "Run Extension (Arbeitsordner)",
+			// Default (first entry = F5): opens the Dev Host with a real working folder, so the
+			// extension can be tested against real Claude Code sessions. Session Radar itself reads
+			// from ~/.claude; the folder only matters for the "current workspace only" filter.
+			"name": "Run Extension (frnis-ai)",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"${userHome}/frnis.at/frnis-ai"
+			],
+			"outFiles": [
+				"${workspaceFolder}/dist/**/*.js"
+			],
+			"preLaunchTask": "${defaultBuildTask}"
+		},
+		{
+			// Asks for the folder. Note: if the input box loses focus, the launch is cancelled silently.
+			"name": "Run Extension (Ordner wählen)",
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
