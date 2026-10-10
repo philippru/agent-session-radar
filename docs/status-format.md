@@ -101,7 +101,7 @@ Caveats a consumer should handle:
 | `sessions` | Keyed by `<agent>:<sessionId>`. |
 | `label` | Local display name. Overrides the agent's title, does not rename the session in the agent. |
 | `archived` | Hidden from the default view. |
-| `lastSeenAt` | ms since epoch. When the user last opened the session from a Agent Session Radar front-end. |
+| `lastSeenAt` | ms since epoch. When the user last opened the session from an Agent Session Radar front-end. |
 
 Writers must re-read the file immediately before writing (read-modify-write), because several
 VS Code windows or other front-ends may write to it.

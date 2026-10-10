@@ -7,16 +7,7 @@ in every VS Code window.
 Supported: **Claude Code** (VS Code extension, terminal, desktop app).
 Prepared: **Codex CLI** (provider skeleton), more agents via the provider interface.
 
-```
-AGENT SESSION RADAR                   ✓✓  ⏷  ⟳
-├─ 🟢 Running                                    1
-│   ✦ Login form with validation   my-app · ⎇ main · just now
-├─ 🟡 Waiting for me                             2
-│   ✦ Refactor API client   🔐 Needs approval · my-app · ⎇ dev · 2 min ago
-│   ✦ Release notes         ✉️ Unread · docs · 1 h ago
-├─ ⚪ Idle / done                                3
-└─ 💤 Stale                                     47
-```
+![Agent Session Radar in the VS Code sidebar: sessions grouped into Running, Waiting for me, Idle / done and Stale](resources/screenshot.png)
 
 ## Contents
 
@@ -42,6 +33,8 @@ AGENT SESSION RADAR                   ✓✓  ⏷  ⟳
   reveal in file explorer, copy session ID.
 - **Filters:** current workspace only / all projects; show/hide archived sessions.
 - Live updates via FileSystemWatcher (debounced), no continuous polling of file contents.
+
+![Tooltip of a session waiting for a permission prompt: status, source, agent, project, branch, last activity, session ID](resources/screenshot-tooltip.png)
 
 ## Installation
 

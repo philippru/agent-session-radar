@@ -36,7 +36,7 @@ function asObject(v: unknown, what: string): Json {
 	return v as Json;
 }
 
-/** Events that currently have a Agent Session Radar hook. */
+/** Events that currently have an Agent Session Radar hook. */
 export function installedEvents(settings: unknown): string[] {
 	const hooks = asObject(asObject(settings, 'settings').hooks, 'hooks');
 	return HOOK_EVENTS.filter(ev => Array.isArray(hooks[ev])
