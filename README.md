@@ -167,8 +167,7 @@ npm run package:vsix     # .vsix bauen
 ```
 
 **Debuggen:** Projekt in VS Code öffnen, F5 → „Run Extension (Arbeitsordner)“. Im Extension Development Host
-öffnet sich ein echter Arbeitsordner. Nach Codeänderungen dort `Ctrl+R`. Benötigt die empfohlene Extension
-`connor4312.esbuild-problem-matchers`.
+öffnet sich ein echter Arbeitsordner. Nach Codeänderungen dort `Ctrl+R`.
 
 **Fixtures:** Nur anonymisierte, von Hand geschriebene Beispieldaten. `.gitignore` blockiert alle anderen `*.jsonl`.
 
