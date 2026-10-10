@@ -1,4 +1,4 @@
-// Launch configurations for developing Session Radar.
+// Launch configurations for developing Agent Session Radar.
 // F5 builds the extension (watch task) and opens an "Extension Development Host" window.
 // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
 {
@@ -6,7 +6,7 @@
 	"configurations": [
 		{
 			// Default (first entry = F5): opens the Dev Host with this repository as its folder.
-			// Session Radar itself reads from ~/.claude; the folder only matters for the
+			// Agent Session Radar itself reads from ~/.claude; the folder only matters for the
 			// "current workspace only" filter.
 			"name": "Run Extension",
 			"type": "extensionHost",

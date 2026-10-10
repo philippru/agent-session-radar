@@ -1,4 +1,4 @@
-// Reader for the Session Radar status layer: ~/.session-radar/status/<agent>/<sessionId>.json
+// Reader for the Agent Session Radar status layer: ~/.session-radar/status/<agent>/<sessionId>.json
 // Written by agent hooks (e.g. resources/hooks/session-radar-hook.js). The format is
 // documented in docs/status-format.md and intended to be read by other front-ends, too.
 

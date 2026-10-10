@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Session Radar hook for Claude Code.
+// Agent Session Radar hook for Claude Code.
 //
-// Installed by the Session Radar VS Code extension into ~/.session-radar/hooks/ and registered
+// Installed by the Agent Session Radar VS Code extension into ~/.session-radar/hooks/ and registered
 // in ~/.claude/settings.json for the events SessionStart, UserPromptSubmit, Notification, Stop
 // and SessionEnd. Claude Code passes the event as JSON on stdin; this script writes one small
 // status file per session:

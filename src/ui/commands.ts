@@ -35,7 +35,7 @@ export function registerCommands(context: vscode.ExtensionContext, deps: Command
 			try {
 				await fn(...args);
 			} catch (err) {
-				void vscode.window.showErrorMessage(`Session Radar: ${(err as Error).message}`);
+				void vscode.window.showErrorMessage(`Agent Session Radar: ${(err as Error).message}`);
 			}
 		}));
 	context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(TRANSCRIPT_SCHEME, new TranscriptContentProvider()));
@@ -78,7 +78,7 @@ export function registerCommands(context: vscode.ExtensionContext, deps: Command
 
 	reg('sessionRadar.rename', async (s: AgentSession) => {
 		const value = await vscode.window.showInputBox({
-			title: 'Rename session (locally in Session Radar only)',
+			title: 'Rename session (locally in Agent Session Radar only)',
 			value: s.label ?? s.title,
 			prompt: `Original title: ${s.title}. Leave empty to remove the local label.`,
 		});

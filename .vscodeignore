@@ -16,3 +16,4 @@ test/**
 coverage/**
 .gitattributes
 **/.vscode-test/**
+resources/icon.svg

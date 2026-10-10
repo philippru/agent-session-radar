@@ -85,7 +85,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Settings changes that only affect status derivation → recompute; others need a reload.
 	context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
 		if (e.affectsConfiguration('sessionRadar.claudeDir') || e.affectsConfiguration('sessionRadar.maxAgeDays')) {
-			void vscode.window.showInformationMessage('Session Radar: Reload the window for the change to take effect.', 'Reload Window')
+			void vscode.window.showInformationMessage('Agent Session Radar: Reload the window for the change to take effect.', 'Reload Window')
 				.then(choice => choice && vscode.commands.executeCommand('workbench.action.reloadWindow'));
 		} else if (e.affectsConfiguration('sessionRadar')) {
 			store.recompute();

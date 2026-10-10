@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Marketplace icon (source for icon.png). Render: see "Releasing" in README.md. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16294a"/>
+      <stop offset="1" stop-color="#0a1424"/>
+    </linearGradient>
+    <linearGradient id="sweep" gradientUnits="userSpaceOnUse" x1="56" y1="112" x2="128" y2="36">
+      <stop offset="0" stop-color="#3fd6b4" stop-opacity="0"/>
+      <stop offset="1" stop-color="#3fd6b4" stop-opacity="0.6"/>
+    </linearGradient>
+    <radialGradient id="glowGreen"><stop offset="0" stop-color="#4ade80" stop-opacity="0.55"/><stop offset="1" stop-color="#4ade80" stop-opacity="0"/></radialGradient>
+    <radialGradient id="glowYellow"><stop offset="0" stop-color="#facc15" stop-opacity="0.55"/><stop offset="1" stop-color="#facc15" stop-opacity="0"/></radialGradient>
+  </defs>
+
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+
+  <g fill="none" stroke="#3fd6b4" stroke-width="4">
+    <circle cx="128" cy="128" r="96" stroke-opacity="0.45"/>
+    <circle cx="128" cy="128" r="64" stroke-opacity="0.3"/>
+    <circle cx="128" cy="128" r="32" stroke-opacity="0.3"/>
+    <path d="M128 32V224M32 128H224" stroke-opacity="0.15" stroke-width="3"/>
+  </g>
+
+  <path d="M128 128L44.86 80A96 96 0 0 1 128 32Z" fill="url(#sweep)"/>
+  <path d="M128 128V32" stroke="#3fd6b4" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="7" fill="#3fd6b4"/>
+
+  <circle cx="170" cy="90" r="26" fill="url(#glowGreen)"/>
+  <circle cx="170" cy="90" r="11" fill="#4ade80"/>
+  <circle cx="84" cy="164" r="26" fill="url(#glowYellow)"/>
+  <circle cx="84" cy="164" r="11" fill="#facc15"/>
+  <circle cx="172" cy="172" r="8" fill="#cbd5e1" fill-opacity="0.75"/>
+</svg>

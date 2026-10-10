@@ -22,7 +22,7 @@ export function resolveCodexDir(): string {
 	return process.env.CODEX_HOME ? expandHome(process.env.CODEX_HOME) : path.join(os.homedir(), '.codex');
 }
 
-/** Root of the Session Radar status layer: $SESSION_RADAR_HOME > ~/.session-radar */
+/** Root of the Agent Session Radar status layer: $SESSION_RADAR_HOME > ~/.session-radar */
 export function radarHome(): string {
 	return process.env.SESSION_RADAR_HOME ? expandHome(process.env.SESSION_RADAR_HOME) : path.join(os.homedir(), '.session-radar');
 }

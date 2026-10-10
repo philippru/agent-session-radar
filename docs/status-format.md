@@ -1,6 +1,6 @@
-# Session Radar status layer — file format
+# Agent Session Radar status layer — file format
 
-Session Radar keeps a small, agent-independent state layer under `~/.session-radar/`
+Agent Session Radar keeps a small, agent-independent state layer under `~/.session-radar/`
 (override with the environment variable `SESSION_RADAR_HOME`). It is written by agent hooks
 and by the VS Code extension and can be read by any other front-end, e.g. a web or mobile view.
 
@@ -72,9 +72,9 @@ Readers must ignore `*.tmp` files, tolerate unknown fields and skip files they c
 
 Caveats a consumer should handle:
 
-- **No event when a permission prompt is answered.** `waiting` stays until the next event. Session Radar
+- **No event when a permission prompt is answered.** `waiting` stays until the next event. Agent Session Radar
   treats `waiting` as resolved as soon as the transcript was written after `updatedAt`.
-- **No `Stop` when the user interrupts (Esc).** `running` can therefore get stuck. Session Radar
+- **No `Stop` when the user interrupts (Esc).** `running` can therefore get stuck. Agent Session Radar
   cross-checks the process registry and uses a timeout (`sessionRadar.runningTimeoutMinutes`).
 - **Crashes** leave the last state behind. Check process liveness where possible.
 - Status files older than `sessionRadar.maxAgeDays` are deleted by the extension.
@@ -101,7 +101,7 @@ Caveats a consumer should handle:
 | `sessions` | Keyed by `<agent>:<sessionId>`. |
 | `label` | Local display name. Overrides the agent's title, does not rename the session in the agent. |
 | `archived` | Hidden from the default view. |
-| `lastSeenAt` | ms since epoch. When the user last opened the session from a Session Radar front-end. |
+| `lastSeenAt` | ms since epoch. When the user last opened the session from a Agent Session Radar front-end. |
 
 Writers must re-read the file immediately before writing (read-modify-write), because several
 VS Code windows or other front-ends may write to it.

@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 
 suite('Extension (integration)', () => {
 	test('activates and registers its commands', async () => {
-		const ext = vscode.extensions.getExtension('local.session-radar');
+		const ext = vscode.extensions.getExtension('philippru.agent-session-radar');
 		assert.ok(ext, 'extension not found');
 		await ext.activate();
 		const commands = await vscode.commands.getCommands(true);

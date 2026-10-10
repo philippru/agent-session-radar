@@ -1,4 +1,4 @@
-# Session Radar
+# Agent Session Radar
 
 A VS Code extension that shows all your AI coding agent sessions at a glance: what is running right now,
 what is waiting for you, and what is done or has been sitting around for days. Across all projects,
@@ -8,7 +8,7 @@ Supported: **Claude Code** (VS Code extension, terminal, desktop app).
 Prepared: **Codex CLI** (provider skeleton), more agents via the provider interface.
 
 ```
-SESSION RADAR                         ✓✓  ⏷  ⟳
+AGENT SESSION RADAR                   ✓✓  ⏷  ⟳
 ├─ 🟢 Running                                    1
 │   ✦ Login form with validation   my-app · ⎇ main · just now
 ├─ 🟡 Waiting for me                             2
@@ -21,7 +21,7 @@ SESSION RADAR                         ✓✓  ⏷  ⟳
 ## Contents
 
 - [Features](#features)
-- [Installation (.vsix)](#installation-vsix)
+- [Installation](#installation)
 - [Setting up hooks (recommended)](#setting-up-hooks-recommended)
 - [Usage](#usage)
 - [How the status is determined](#how-the-status-is-determined)
@@ -43,34 +43,39 @@ SESSION RADAR                         ✓✓  ⏷  ⟳
 - **Filters:** current workspace only / all projects; show/hide archived sessions.
 - Live updates via FileSystemWatcher (debounced), no continuous polling of file contents.
 
-## Installation (.vsix)
+## Installation
 
-Requirements: VS Code ≥ 1.140, Node.js ≥ 20 (for the hooks and for building).
+Requirements: VS Code ≥ 1.140; Node.js ≥ 20 for the optional hooks.
+
+Search for **Agent Session Radar** in the Extensions view, or install it from the
+[VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=philippru.agent-session-radar)
+or [Open VSX](https://open-vsx.org/extension/philippru/agent-session-radar) (for VSCodium, Cursor and other forks).
+The radar icon then shows up in the Activity Bar of every window.
+
+**Uninstall:** first run `…` → **Remove Claude Code Hooks…** in Agent Session Radar (if installed),
+then uninstall the extension in VS Code. Optionally delete `~/.session-radar`.
+
+### Building from source
 
 ```powershell
 git clone https://github.com/philippru/session-radar.git
 cd session-radar
 npm install
-npm run package:vsix                                 # creates session-radar.vsix
-code --install-extension .\session-radar.vsix
+npm run package:vsix                                 # creates agent-session-radar.vsix
+code --install-extension .\agent-session-radar.vsix
 ```
 
-Alternatively in VS Code: Extensions view → `…` → **Install from VSIX…** → pick `session-radar.vsix`.
-The radar icon then shows up in the Activity Bar of every window.
-
-- **Update:** bump the version in `package.json`, run `npm run package:vsix`, install again, reload the window.
-- **Uninstall:** first run `…` → **Remove Claude Code Hooks…** in Session Radar (if installed),
-  then uninstall the extension in VS Code. Optionally delete `~/.session-radar`.
+Alternatively in VS Code: Extensions view → `…` → **Install from VSIX…** → pick `agent-session-radar.vsix`.
 
 ## Setting up hooks (recommended)
 
-Without hooks, Session Radar reads Claude Code's process registry and the transcripts. That is enough for
+Without hooks, Agent Session Radar reads Claude Code's process registry and the transcripts. That is enough for
 "running / done / unread". **Open permission prompts**, however, are only detected with hooks.
 
-In the Session Radar view: `…` → **Install Claude Code Hooks…**
+In the Agent Session Radar view: `…` → **Install Claude Code Hooks…**
 
 1. A diff shows the planned change to `~/.claude/settings.json`.
-2. After you confirm, Session Radar creates a backup in `~/.session-radar/backups/`.
+2. After you confirm, Agent Session Radar creates a backup in `~/.session-radar/backups/`.
 3. It then adds hooks for `SessionStart`, `UserPromptSubmit`, `Notification`, `Stop` and `SessionEnd`.
    **Existing hooks are left untouched.**
 4. The hook script (`~/.session-radar/hooks/session-radar-hook.js`, plain Node.js) writes one small status file
@@ -78,7 +83,7 @@ In the Session Radar view: `…` → **Install Claude Code Hooks…**
    and stores **no** prompt or response content.
 
 The hooks take effect for newly started or resumed sessions. Removing them works the same way via
-**Remove Claude Code Hooks…**: diff, backup, and only Session Radar's own entries are deleted.
+**Remove Claude Code Hooks…**: diff, backup, and only Agent Session Radar's own entries are deleted.
 Without hooks, the view is titled "Sessions (no hooks)".
 
 ## Usage
@@ -93,7 +98,7 @@ Without hooks, the view is titled "Sessions (no hooks)".
 | ended session | `claude --resume <id>` in a new terminal in the project folder |
 
 If a session is still live (e.g. in another window) and you choose "Resume in Terminal",
-Session Radar asks first: two processes on the same session can mess up its history.
+Agent Session Radar asks first: two processes on the same session can mess up its history.
 
 **Title bar:** ✓✓ mark all as read · filter workspace/all · ⟳ refresh ·
 `…` show/hide archived, install/remove hooks.
@@ -168,11 +173,22 @@ npm run package:vsix     # build the .vsix
 ```
 
 **Debugging:** open the project in VS Code, press F5. The first launch configuration opens this repository in the
-Extension Development Host; "Run Extension (choose folder)" asks for another folder. Session Radar reads from
+Extension Development Host; "Run Extension (choose folder)" asks for another folder. Agent Session Radar reads from
 `~/.claude` either way; the folder only matters for the "current workspace only" filter. After code changes,
 press `Ctrl+R` in the Development Host.
 
 **Fixtures:** only anonymized, hand-written sample data. `.gitignore` blocks all other `*.jsonl` files.
+
+### Releasing
+
+1. Bump `version` in `package.json` and add an entry to `CHANGELOG.md`.
+2. VS Code Marketplace: `npx vsce login philippru` once (with an Azure DevOps personal access token,
+   scope *Marketplace → Manage*), then `npm run publish:marketplace`.
+3. Open VSX: set `OVSX_PAT` to an Open VSX access token, then `npm run publish:openvsx`.
+4. Tag the release: `git tag v<version> && git push --tags`.
+
+The Marketplace icon `resources/icon.png` is rendered from `resources/icon.svg`, e.g. with headless Edge/Chrome:
+`msedge --headless --hide-scrollbars --default-background-color=00000000 --window-size=256,256 --screenshot=icon.png icon.svg`.
 
 ### Structure
 

@@ -1,4 +1,4 @@
-// Pure functions to add/remove the Session Radar hooks in Claude Code's settings.json.
+// Pure functions to add/remove the Agent Session Radar hooks in Claude Code's settings.json.
 // Existing hooks are never modified or removed; only entries whose command references
 // our hook script are touched.
 
@@ -36,7 +36,7 @@ function asObject(v: unknown, what: string): Json {
 	return v as Json;
 }
 
-/** Events that currently have a Session Radar hook. */
+/** Events that currently have a Agent Session Radar hook. */
 export function installedEvents(settings: unknown): string[] {
 	const hooks = asObject(asObject(settings, 'settings').hooks, 'hooks');
 	return HOOK_EVENTS.filter(ev => Array.isArray(hooks[ev])

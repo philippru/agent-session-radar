@@ -1,12 +1,20 @@
 {
-  "name": "session-radar",
-  "displayName": "Session Radar",
-  "description": "Overview of all your AI coding agent sessions (Claude Code, later Codex and others): what is running, what is waiting for you, what is done.",
+  "name": "agent-session-radar",
+  "displayName": "Agent Session Radar",
+  "description": "See all your AI coding agent sessions at a glance: what is running, what is waiting for you, what is done. Supports Claude Code.",
+  "publisher": "philippru",
+  "icon": "resources/icon.png",
+  "preview": true,
+  "galleryBanner": {
+    "color": "#0f1d33",
+    "theme": "dark"
+  },
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.140.0"
   },
   "categories": [
+    "AI",
     "Other"
   ],
   "activationEvents": [
@@ -18,7 +26,7 @@
       "activitybar": [
         {
           "id": "sessionRadar",
-          "title": "Session Radar",
+          "title": "Agent Session Radar",
           "icon": "resources/radar.svg"
         }
       ]
@@ -29,7 +37,7 @@
           "id": "sessionRadar.sessions",
           "name": "Sessions",
           "icon": "resources/radar.svg",
-          "contextualTitle": "Session Radar"
+          "contextualTitle": "Agent Session Radar"
         }
       ]
     },
@@ -43,98 +51,98 @@
       {
         "command": "sessionRadar.refresh",
         "title": "Refresh",
-        "category": "Session Radar",
+        "category": "Agent Session Radar",
         "icon": "$(refresh)"
       },
       {
         "command": "sessionRadar.scopeWorkspace",
         "title": "Show Current Workspace Only",
-        "category": "Session Radar",
+        "category": "Agent Session Radar",
         "icon": "$(filter)"
       },
       {
         "command": "sessionRadar.scopeAll",
         "title": "Show All Projects",
-        "category": "Session Radar",
+        "category": "Agent Session Radar",
         "icon": "$(filter-filled)"
       },
       {
         "command": "sessionRadar.markAllSeen",
         "title": "Mark All as Read",
-        "category": "Session Radar",
+        "category": "Agent Session Radar",
         "icon": "$(check-all)"
       },
       {
         "command": "sessionRadar.showArchived",
         "title": "Show Archived Sessions",
-        "category": "Session Radar"
+        "category": "Agent Session Radar"
       },
       {
         "command": "sessionRadar.hideArchived",
         "title": "Hide Archived Sessions",
-        "category": "Session Radar"
+        "category": "Agent Session Radar"
       },
       {
         "command": "sessionRadar.installHooks",
         "title": "Install Claude Code Hooks…",
-        "category": "Session Radar",
+        "category": "Agent Session Radar",
         "icon": "$(plug)"
       },
       {
         "command": "sessionRadar.uninstallHooks",
         "title": "Remove Claude Code Hooks…",
-        "category": "Session Radar"
+        "category": "Agent Session Radar"
       },
       {
         "command": "sessionRadar.open",
         "title": "Open / Resume",
-        "category": "Session Radar",
+        "category": "Agent Session Radar",
         "icon": "$(go-to-file)"
       },
       {
         "command": "sessionRadar.resumeInTerminal",
         "title": "Resume in Terminal",
-        "category": "Session Radar",
+        "category": "Agent Session Radar",
         "icon": "$(terminal)"
       },
       {
         "command": "sessionRadar.rename",
         "title": "Rename (Local)…",
-        "category": "Session Radar",
+        "category": "Agent Session Radar",
         "icon": "$(edit)"
       },
       {
         "command": "sessionRadar.markSeen",
         "title": "Mark as Read",
-        "category": "Session Radar",
+        "category": "Agent Session Radar",
         "icon": "$(check)"
       },
       {
         "command": "sessionRadar.archive",
         "title": "Archive / Hide",
-        "category": "Session Radar",
+        "category": "Agent Session Radar",
         "icon": "$(archive)"
       },
       {
         "command": "sessionRadar.unarchive",
         "title": "Unarchive",
-        "category": "Session Radar"
+        "category": "Agent Session Radar"
       },
       {
         "command": "sessionRadar.showTranscript",
         "title": "Show Transcript (Read-Only)",
-        "category": "Session Radar",
+        "category": "Agent Session Radar",
         "icon": "$(file-text)"
       },
       {
         "command": "sessionRadar.revealTranscript",
         "title": "Reveal Transcript in File Explorer",
-        "category": "Session Radar"
+        "category": "Agent Session Radar"
       },
       {
         "command": "sessionRadar.copySessionId",
         "title": "Copy Session ID",
-        "category": "Session Radar"
+        "category": "Agent Session Radar"
       }
     ],
     "menus": {
@@ -277,7 +285,7 @@
       ]
     },
     "configuration": {
-      "title": "Session Radar",
+      "title": "Agent Session Radar",
       "properties": {
         "sessionRadar.claudeDir": {
           "type": "string",
@@ -324,7 +332,9 @@
     "lint": "eslint src",
     "test": "vscode-test",
     "test:unit": "tsc -p . --outDir out && mocha --ui tdd \"out/test/unit/**/*.test.js\"",
-    "package:vsix": "vsce package --no-dependencies -o session-radar.vsix"
+    "package:vsix": "vsce package --no-dependencies -o agent-session-radar.vsix",
+    "publish:marketplace": "vsce publish --no-dependencies",
+    "publish:openvsx": "npm run package:vsix && npx --yes ovsx publish agent-session-radar.vsix"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -344,7 +354,6 @@
     "diff": "^8.0.4",
     "serialize-javascript": "^7.0.6"
   },
-  "publisher": "local",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -360,7 +369,11 @@
     "claude code",
     "codex",
     "ai agents",
-    "sessions"
+    "agent",
+    "sessions",
+    "session manager",
+    "notifications",
+    "productivity"
   ],
   "extensionKind": [
     "ui",

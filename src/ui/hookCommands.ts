@@ -120,7 +120,7 @@ export function registerHookCommands(context: vscode.ExtensionContext, paths: Ho
 		try {
 			await fn();
 		} catch (err) {
-			void vscode.window.showErrorMessage(`Session Radar: ${(err as Error).message}`);
+			void vscode.window.showErrorMessage(`Agent Session Radar: ${(err as Error).message}`);
 		}
 	};
 
@@ -133,7 +133,7 @@ export function registerHookCommands(context: vscode.ExtensionContext, paths: Ho
 		await fs.copyFile(paths.bundledScript, paths.installedScript);
 
 		if (plan.added.length === 0 && plan.updated.length === 0) {
-			void vscode.window.showInformationMessage('Session Radar: The hooks are already installed.');
+			void vscode.window.showInformationMessage('Agent Session Radar: The hooks are already installed.');
 			await updateContext();
 			return;
 		}
@@ -148,8 +148,8 @@ export function registerHookCommands(context: vscode.ExtensionContext, paths: Ho
 		const result = await applyChange(
 			original,
 			serializeLike(original, plan.next),
-			'Claude settings.json: add Session Radar hooks',
-			`Session Radar will add hooks for ${events} to ~/.claude/settings.json.\n\nExisting hooks are left untouched. A backup is created in ~/.session-radar/backups first. The change is shown in the open diff.`,
+			'Claude settings.json: add Agent Session Radar hooks',
+			`Agent Session Radar will add hooks for ${events} to ~/.claude/settings.json.\n\nExisting hooks are left untouched. A backup is created in ~/.session-radar/backups first. The change is shown in the open diff.`,
 			'Install Hooks',
 		);
 		if (!result) {
@@ -157,7 +157,7 @@ export function registerHookCommands(context: vscode.ExtensionContext, paths: Ho
 		}
 		await updateContext();
 		const choice = await vscode.window.showInformationMessage(
-			'Session Radar: Hooks installed. They take effect for newly started or resumed Claude Code sessions.',
+			'Agent Session Radar: Hooks installed. They take effect for newly started or resumed Claude Code sessions.',
 			...(result.backup ? ['Show Backup'] : []));
 		if (choice && result.backup) {
 			await vscode.commands.executeCommand('revealFileInOS', vscode.Uri.file(result.backup));
@@ -168,20 +168,20 @@ export function registerHookCommands(context: vscode.ExtensionContext, paths: Ho
 		const original = await readIfExists(paths.settingsFile);
 		const plan = planUninstall(parseSettings(original));
 		if (plan.removed.length === 0) {
-			void vscode.window.showInformationMessage(`Session Radar: No hooks using ${HOOK_SCRIPT_NAME} found.`);
+			void vscode.window.showInformationMessage(`Agent Session Radar: No hooks using ${HOOK_SCRIPT_NAME} found.`);
 			await updateContext();
 			return;
 		}
 		const result = await applyChange(
 			original,
 			serializeLike(original, plan.next),
-			'Claude settings.json: remove Session Radar hooks',
-			`Session Radar will remove its hooks (${plan.removed.join(', ')}) from ~/.claude/settings.json.\n\nOther hooks are left untouched. A backup is created first.`,
+			'Claude settings.json: remove Agent Session Radar hooks',
+			`Agent Session Radar will remove its hooks (${plan.removed.join(', ')}) from ~/.claude/settings.json.\n\nOther hooks are left untouched. A backup is created first.`,
 			'Remove Hooks',
 		);
 		if (result) {
 			await updateContext();
-			void vscode.window.showInformationMessage('Session Radar: Hooks removed. Without hooks, Session Radar uses the process registry and transcripts.');
+			void vscode.window.showInformationMessage('Agent Session Radar: Hooks removed. Without hooks, Agent Session Radar uses the process registry and transcripts.');
 		}
 	})));
 }
