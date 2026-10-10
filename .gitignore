@@ -1,0 +1,26 @@
+# build output
+out
+dist
+*.vsix
+*.tsbuildinfo
+
+# dependencies / test runtime
+node_modules
+.vscode-test/
+coverage/
+
+# logs & local env
+*.log
+.env
+.env.*
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+
+# Safety net: real agent transcripts and status files must never be committed.
+# Only anonymized fixtures under test/fixtures/ are allowed.
+*.jsonl
+!test/fixtures/**/*.jsonl
+.session-radar/
+.claude/

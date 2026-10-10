@@ -1,0 +1,45 @@
+// Launch configurations for developing Session Radar.
+// F5 builds the extension (watch task) and opens an "Extension Development Host" window.
+// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			// Opens the Dev Host with a real working folder, so the extension can be tested
+			// against real Claude Code sessions. The folder is asked for on each start
+			// (default: frnis-ai). Session Radar itself reads from ~/.claude, not from this folder;
+			// the folder only matters for the "current workspace only" filter.
+			"name": "Run Extension (Arbeitsordner)",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"${input:devHostFolder}"
+			],
+			"outFiles": [
+				"${workspaceFolder}/dist/**/*.js"
+			],
+			"preLaunchTask": "${defaultBuildTask}"
+		},
+		{
+			"name": "Run Extension (leeres Fenster)",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}"
+			],
+			"outFiles": [
+				"${workspaceFolder}/dist/**/*.js"
+			],
+			"preLaunchTask": "${defaultBuildTask}"
+		}
+	],
+	"inputs": [
+		{
+			"id": "devHostFolder",
+			"type": "promptString",
+			"description": "Ordner, der im Extension Development Host geöffnet wird",
+			"default": "C:\\Users\\phili\\frnis.at\\frnis-ai"
+		}
+	]
+}
