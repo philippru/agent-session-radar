@@ -69,6 +69,16 @@ suite('deriveStatus – process registry', () => {
 		assert.strictEqual(deriveStatus(sig, ctx({ lastSeenAt: NOW - 2 * HOUR })).status, 'idle');
 	});
 
+	test('registry idle right after startup (no finished turn) is not unread', () => {
+		const sig: StatusSignals = { lastActivity: NOW - 1 * MIN, process: { alive: true, state: 'idle', stateSince: NOW - 1 * MIN } };
+		assert.strictEqual(deriveStatus(sig, ctx()).status, 'idle');
+	});
+
+	test('registry idle after a finished turn → unread, using the transcript turn end', () => {
+		const sig: StatusSignals = { lastActivity: NOW - 1 * MIN, turnEndedAt: NOW - 1 * MIN, process: { alive: true, state: 'idle', stateSince: NOW - 1 * MIN } };
+		assert.deepStrictEqual(deriveStatus(sig, ctx()), { status: 'waiting', source: 'process', waitingReason: 'unread' });
+	});
+
 	test('dead process wins over a transcript that looks in progress', () => {
 		const sig: StatusSignals = { lastActivity: NOW - 1 * MIN, turnInProgress: true, process: { alive: false } };
 		assert.deepStrictEqual(deriveStatus(sig, ctx()), { status: 'idle', source: 'process' });
@@ -134,6 +144,11 @@ suite('deriveStatus – hooks', () => {
 		const sig: StatusSignals = { lastActivity: NOW - 2 * MIN, hook: { state: 'idle', updatedAt: NOW - 2 * MIN, turnEndedAt: NOW - 2 * MIN } };
 		assert.strictEqual(deriveStatus(sig, ctx()).waitingReason, 'unread');
 		assert.strictEqual(deriveStatus(sig, ctx({ lastSeenAt: NOW - MIN })).status, 'idle');
+	});
+
+	test('SessionStart (idle without turnEndedAt) is not unread', () => {
+		const sig: StatusSignals = { lastActivity: NOW - 2 * MIN, turnEndedAt: NOW - 3 * HOUR, hook: { state: 'idle', updatedAt: NOW - 1 * MIN } };
+		assert.strictEqual(deriveStatus(sig, ctx()).status, 'idle');
 	});
 
 	test('SessionEnd → idle, never unread', () => {

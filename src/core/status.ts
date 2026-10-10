@@ -38,7 +38,8 @@ export interface DerivedStatus {
 type Phase =
 	| { kind: 'running'; at: number }
 	| { kind: 'blocked'; at: number; reason: 'permission' | 'input' }
-	| { kind: 'turnEnded'; at: number }
+	/** `at`: when this source last reported; `turnEndedAt`: when a turn really finished (for "unread"). */
+	| { kind: 'turnEnded'; at: number; turnEndedAt?: number }
 	| { kind: 'ended'; at: number };
 
 interface Candidate { source: StatusSource; phase: Phase }
@@ -55,7 +56,8 @@ export function deriveStatus(sig: StatusSignals, ctx: StatusContext): DerivedSta
 			h.state === 'running' ? { kind: 'running', at: h.updatedAt }
 				: h.state === 'waiting' ? { kind: 'blocked', at: h.updatedAt, reason: h.waitingReason ?? 'input' }
 					: h.state === 'ended' ? { kind: 'ended', at: h.updatedAt }
-						: { kind: 'turnEnded', at: h.turnEndedAt ?? h.updatedAt };
+						// idle after Stop carries turnEndedAt; idle after SessionStart does not (nothing unread)
+						: { kind: 'turnEnded', at: h.updatedAt, turnEndedAt: h.turnEndedAt };
 		candidates.push({ source: 'hook', phase });
 	}
 
@@ -73,7 +75,9 @@ export function deriveStatus(sig: StatusSignals, ctx: StatusContext): DerivedSta
 		} else if (p.state === 'busy') {
 			phase = { kind: 'running', at };
 		} else if (p.state === 'idle') {
-			phase = { kind: 'turnEnded', at };
+			// The registry also reports idle right after startup, so the actual end of a turn
+			// comes from the transcript.
+			phase = { kind: 'turnEnded', at, turnEndedAt: sig.turnEndedAt };
 		} else if (p.state && /wait|input|permission/i.test(p.state)) {
 			phase = { kind: 'blocked', at, reason: /permission/i.test(p.state) ? 'permission' : 'input' };
 		}
@@ -87,7 +91,7 @@ export function deriveStatus(sig: StatusSignals, ctx: StatusContext): DerivedSta
 		source: 'transcript',
 		phase: sig.turnInProgress
 			? { kind: 'running', at: sig.lastActivity }
-			: { kind: 'turnEnded', at: sig.turnEndedAt ?? sig.lastActivity },
+			: { kind: 'turnEnded', at: sig.turnEndedAt ?? sig.lastActivity, turnEndedAt: sig.turnEndedAt ?? sig.lastActivity },
 	});
 
 	// Candidates are in priority order; a later one wins only if clearly newer.
@@ -107,7 +111,8 @@ export function deriveStatus(sig: StatusSignals, ctx: StatusContext): DerivedSta
 	if (phase.kind === 'running') {
 		const limit = chosen.source === 'transcript' ? ctx.transcriptRunningMs : ctx.runningTimeoutMs;
 		if (ctx.now - Math.max(phase.at, sig.lastActivity) > limit) {
-			phase = { kind: 'turnEnded', at: Math.max(phase.at, sig.lastActivity) };
+			const at = Math.max(phase.at, sig.lastActivity);
+			phase = { kind: 'turnEnded', at, turnEndedAt: at };
 		}
 	}
 
@@ -124,9 +129,11 @@ export function deriveStatus(sig: StatusSignals, ctx: StatusContext): DerivedSta
 			return { status: 'waiting', source: chosen.source, waitingReason: phase.reason };
 		case 'turnEnded': {
 			const seen = Math.max(ctx.lastSeenAt ?? 0, ctx.seenBaseline ?? 0);
+			const ended = phase.turnEndedAt;
 			const unread = ctx.unreadAsWaiting
-				&& phase.at > seen
-				&& ctx.now - phase.at <= ctx.staleAfterMs;
+				&& ended !== undefined
+				&& ended > seen
+				&& ctx.now - ended <= ctx.staleAfterMs;
 			if (unread) {
 				return { status: 'waiting', source: chosen.source, waitingReason: 'unread' };
 			}

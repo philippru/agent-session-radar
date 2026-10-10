@@ -36,7 +36,7 @@
     "viewsWelcome": [
       {
         "view": "sessionRadar.sessions",
-        "contents": "Keine Sessions gefunden.\n[Aktualisieren](command:sessionRadar.refresh)"
+        "contents": "Keine Sessions gefunden.\n[Aktualisieren](command:sessionRadar.refresh)\nFür einen genaueren Live-Status (z. B. offene Freigaben) kannst du Hooks in Claude Code eintragen:\n[Hooks installieren…](command:sessionRadar.installHooks)"
       }
     ],
     "commands": [
@@ -62,6 +62,17 @@
         "command": "sessionRadar.open",
         "title": "Öffnen / Fortsetzen",
         "category": "Session Radar"
+      },
+      {
+        "command": "sessionRadar.installHooks",
+        "title": "Claude-Code-Hooks installieren…",
+        "category": "Session Radar",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "sessionRadar.uninstallHooks",
+        "title": "Claude-Code-Hooks entfernen…",
+        "category": "Session Radar"
       }
     ],
     "menus": {
@@ -80,6 +91,16 @@
           "command": "sessionRadar.refresh",
           "when": "view == sessionRadar.sessions",
           "group": "navigation@9"
+        },
+        {
+          "command": "sessionRadar.installHooks",
+          "when": "view == sessionRadar.sessions && !sessionRadar.hooksInstalled",
+          "group": "2_hooks@1"
+        },
+        {
+          "command": "sessionRadar.uninstallHooks",
+          "when": "view == sessionRadar.sessions && sessionRadar.hooksInstalled",
+          "group": "2_hooks@2"
         }
       ],
       "commandPalette": [

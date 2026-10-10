@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import { AgentSession, baseName } from '../../core/model';
 import { BaseSessionProvider, Disposable, ResumeHost, WatchHost } from '../../core/provider';
+import { HookStatus, readStatusDir } from '../../core/statusLayer';
 import { mapLimit } from '../../core/util';
 import { AliveCheck, ClaudeProcessEntry, isProcessAlive, readProcessRegistry } from './processRegistry';
 import { TranscriptInfo, parseTranscript, pickTitle, surfaceFromEntrypoint } from './transcript';
@@ -11,6 +12,8 @@ export interface ClaudeCodeProviderOptions {
 	claudeDir: string;
 	/** Ignore transcripts not modified within this many days. */
 	maxAgeDays: number;
+	/** Status files written by our hook (~/.session-radar/status/claude-code). Optional. */
+	hookStatusDir?: string;
 	/** Injectable for tests. */
 	isAlive?: AliveCheck;
 }
@@ -52,9 +55,10 @@ export class ClaudeCodeProvider extends BaseSessionProvider {
 	}
 
 	async discover(): Promise<AgentSession[]> {
-		const [files, registry] = await Promise.all([
+		const [files, registry, hookStates] = await Promise.all([
 			this.listTranscripts(),
 			readProcessRegistry(this.processRegistryDir, this.options.isAlive ?? isProcessAlive),
+			this.options.hookStatusDir ? readStatusDir(this.options.hookStatusDir) : Promise.resolve(new Map<string, HookStatus>()),
 		]);
 		const seen = new Set<string>();
 		const sessions = await mapLimit(files, 8, async (file) => {
@@ -63,6 +67,10 @@ export class ClaudeCodeProvider extends BaseSessionProvider {
 			const session = info ? this.toSession(file.path, file.mtimeMs, info) : undefined;
 			if (session && info && registry) {
 				this.applyProcess(session, info, registry.get(session.id));
+			}
+			const hook = session && hookStates.get(session.id);
+			if (session && hook) {
+				session.signals.hook = { state: hook.state, waitingReason: hook.waitingReason, updatedAt: hook.updatedAt, turnEndedAt: hook.turnEndedAt };
 			}
 			return session;
 		});
@@ -81,6 +89,9 @@ export class ClaudeCodeProvider extends BaseSessionProvider {
 			host.watch(this.projectsDir, '*/*.jsonl', () => onChange()),
 			host.watch(this.processRegistryDir, '*.json', () => onChange()),
 		];
+		if (this.options.hookStatusDir) {
+			subs.push(host.watch(this.options.hookStatusDir, '*.json', () => onChange()));
+		}
 		return { dispose: () => subs.forEach(s => s.dispose()) };
 	}
 
