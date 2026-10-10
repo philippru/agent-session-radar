@@ -17,7 +17,7 @@ import { HookPaths, hooksInstalled, registerHookCommands, syncInstalledScript } 
 import { Scope, SessionTreeProvider } from './ui/SessionTreeProvider';
 import { VsCodeResumeHost, VsCodeWatchHost } from './ui/vscodeHosts';
 
-/** Periodic refresh for time-based transitions ("vor X Min.", running → idle, idle → alt). */
+/** Periodic refresh for time-based transitions ("X min ago", running → idle, idle → stale). */
 const TICK_MS = 30_000;
 const DEBOUNCE_MS = 400;
 const DEBOUNCE_MAX_MS = 2_000;
@@ -67,10 +67,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	const updateView = () => {
 		tree.refresh();
 		const waiting = tree.visibleSessions().filter(s => s.status === 'waiting').length;
-		view.badge = waiting > 0 ? { value: waiting, tooltip: `${waiting} Session(s) warten auf dich` } : undefined;
-		view.message = tree.scope === 'workspace' ? 'Filter: nur aktueller Workspace' : undefined;
+		view.badge = waiting > 0 ? { value: waiting, tooltip: `${waiting} session(s) waiting for you` } : undefined;
+		view.message = tree.scope === 'workspace' ? 'Filter: current workspace only' : undefined;
 		// Part of the title: a view description is not rendered when the view is alone in its container.
-		view.title = hooksActive ? 'Sessions' : 'Sessions (ohne Hooks)';
+		view.title = hooksActive ? 'Sessions' : 'Sessions (no hooks)';
 	};
 	context.subscriptions.push(store.onDidChange(updateView));
 	void vscode.commands.executeCommand('setContext', 'sessionRadar.scope', tree.scope);
@@ -85,7 +85,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Settings changes that only affect status derivation → recompute; others need a reload.
 	context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
 		if (e.affectsConfiguration('sessionRadar.claudeDir') || e.affectsConfiguration('sessionRadar.maxAgeDays')) {
-			void vscode.window.showInformationMessage('Session Radar: Bitte Fenster neu laden, damit die Änderung wirkt.', 'Neu laden')
+			void vscode.window.showInformationMessage('Session Radar: Reload the window for the change to take effect.', 'Reload Window')
 				.then(choice => choice && vscode.commands.executeCommand('workbench.action.reloadWindow'));
 		} else if (e.affectsConfiguration('sessionRadar')) {
 			store.recompute();

@@ -1,208 +1,211 @@
 # Session Radar
 
-Eine VS-Code-Extension, die alle deine KI-Coding-Agent-Sessions auf einen Blick zeigt: was gerade
-läuft, was auf dich wartet und was fertig ist oder seit Tagen herumliegt. Projektübergreifend,
-in jedem VS-Code-Fenster.
+A VS Code extension that shows all your AI coding agent sessions at a glance: what is running right now,
+what is waiting for you, and what is done or has been sitting around for days. Across all projects,
+in every VS Code window.
 
-Unterstützt: **Claude Code** (VS-Code-Extension, Terminal, Desktop-App).
-Vorbereitet: **Codex CLI** (Provider-Skelett), weitere Agenten über die Provider-Schnittstelle.
+Supported: **Claude Code** (VS Code extension, terminal, desktop app).
+Prepared: **Codex CLI** (provider skeleton), more agents via the provider interface.
 
 ```
 SESSION RADAR                         ✓✓  ⏷  ⟳
-├─ 🟢 Läuft                                      1
-│   ✦ Login-Formular mit Validierung   frnis-ai · ⎇ main · gerade eben
-├─ 🟡 Wartet auf mich                            2
-│   ✦ API-Client refaktorieren   🔐 Freigabe nötig · frnis-ai · ⎇ dev · vor 2 Min.
-│   ✦ Release Notes             ✉️ ungelesen · docs · vor 1 Std.
-├─ ⚪ Idle / fertig                              3
-└─ 💤 Alt                                       47
+├─ 🟢 Running                                    1
+│   ✦ Login form with validation   my-app · ⎇ main · just now
+├─ 🟡 Waiting for me                             2
+│   ✦ Refactor API client   🔐 Needs approval · my-app · ⎇ dev · 2 min ago
+│   ✦ Release notes         ✉️ Unread · docs · 1 h ago
+├─ ⚪ Idle / done                                3
+└─ 💤 Stale                                     47
 ```
 
-## Inhalt
+## Contents
 
-- [Was es kann](#was-es-kann)
+- [Features](#features)
 - [Installation (.vsix)](#installation-vsix)
-- [Hooks einrichten (empfohlen)](#hooks-einrichten-empfohlen)
-- [Bedienung](#bedienung)
-- [Wie der Status bestimmt wird](#wie-der-status-bestimmt-wird)
-- [Einstellungen](#einstellungen)
-- [Datenschutz und Sicherheit](#datenschutz-und-sicherheit)
-- [Bekannte Grenzen](#bekannte-grenzen)
-- [Entwicklung](#entwicklung)
-- [Einen neuen Provider hinzufügen](#einen-neuen-provider-hinzufügen)
+- [Setting up hooks (recommended)](#setting-up-hooks-recommended)
+- [Usage](#usage)
+- [How the status is determined](#how-the-status-is-determined)
+- [Settings](#settings)
+- [Privacy and security](#privacy-and-security)
+- [Known limitations](#known-limitations)
+- [Development](#development)
+- [Adding a new provider](#adding-a-new-provider)
 
-## Was es kann
+## Features
 
-- **Tree View in der Activity Bar**, gruppiert nach Status: 🟢 Läuft · 🟡 Wartet auf mich · ⚪ Idle/fertig (< 24 h) · 💤 Alt (> 24 h)
-- Pro Session: Titel (dein lokales Label > `/rename`-Name > KI-Titel > erste Nachricht), Projekt, Git-Branch,
-  „zuletzt aktiv vor X“, Agent-Icon. Der Tooltip zeigt alle Details inkl. Statusquelle und PID.
-- **Badge** an der Activity Bar mit der Anzahl „wartet auf mich“.
-- **Klick** fokussiert oder setzt die Session fort (Details unter [Bedienung](#bedienung)).
-- **Kontextmenü:** lokal umbenennen, als gelesen markieren, archivieren, Transkript schreibgeschützt anzeigen,
-  im Explorer zeigen, Session-ID kopieren.
-- **Filter:** nur aktueller Workspace / alle Projekte; archivierte ein-/ausblenden.
-- Live-Aktualisierung über FileSystemWatcher (mit Debounce), kein Dauer-Polling der Inhalte.
+- **Tree view in the Activity Bar**, grouped by status: 🟢 Running · 🟡 Waiting for me · ⚪ Idle/done (< 24 h) · 💤 Stale (> 24 h)
+- Per session: title (your local label > `/rename` name > AI title > first message), project, Git branch,
+  "last active X ago", agent icon. The tooltip shows all details, including the status source and PID.
+- **Badge** on the Activity Bar with the number of sessions waiting for you.
+- **Click** focuses or resumes the session (details under [Usage](#usage)).
+- **Context menu:** rename locally, mark as read, archive, show transcript read-only,
+  reveal in file explorer, copy session ID.
+- **Filters:** current workspace only / all projects; show/hide archived sessions.
+- Live updates via FileSystemWatcher (debounced), no continuous polling of file contents.
 
 ## Installation (.vsix)
 
-Voraussetzungen: VS Code ≥ 1.140, Node.js ≥ 20 (für die Hooks und zum Bauen).
+Requirements: VS Code ≥ 1.140, Node.js ≥ 20 (for the hooks and for building).
 
 ```powershell
-cd C:\Users\phili\session-radar
+git clone <repository-url>
+cd session-radar
 npm install
-npm run package:vsix                                 # erzeugt session-radar.vsix
+npm run package:vsix                                 # creates session-radar.vsix
 code --install-extension .\session-radar.vsix
 ```
 
-Alternativ in VS Code: Extensions-Ansicht → `…` → **Install from VSIX…** → `session-radar.vsix` wählen.
-Danach erscheint das Radar-Icon in der Activity Bar jedes Fensters.
+Alternatively in VS Code: Extensions view → `…` → **Install from VSIX…** → pick `session-radar.vsix`.
+The radar icon then shows up in the Activity Bar of every window.
 
-- **Update:** Version in `package.json` erhöhen, `npm run package:vsix`, erneut installieren, Fenster neu laden.
-- **Deinstallieren:** zuerst in Session Radar `…` → **Claude-Code-Hooks entfernen…** (falls installiert),
-  dann die Extension in VS Code deinstallieren. Optional `~/.session-radar` löschen.
+- **Update:** bump the version in `package.json`, run `npm run package:vsix`, install again, reload the window.
+- **Uninstall:** first run `…` → **Remove Claude Code Hooks…** in Session Radar (if installed),
+  then uninstall the extension in VS Code. Optionally delete `~/.session-radar`.
 
-## Hooks einrichten (empfohlen)
+## Setting up hooks (recommended)
 
-Ohne Hooks liest Session Radar die Prozessliste von Claude Code und die Transkripte. Das reicht für
-„läuft / fertig / ungelesen“. **Offene Freigabe-Dialoge** (Permission Prompts) erkennt es aber nur mit Hooks.
+Without hooks, Session Radar reads Claude Code's process registry and the transcripts. That is enough for
+"running / done / unread". **Open permission prompts**, however, are only detected with hooks.
 
-In der Session-Radar-Ansicht: `…` → **Claude-Code-Hooks installieren…**
+In the Session Radar view: `…` → **Install Claude Code Hooks…**
 
-1. Ein Diff zeigt die geplante Änderung an `~/.claude/settings.json`.
-2. Nach deiner Bestätigung legt Session Radar ein Backup unter `~/.session-radar/backups/` an.
-3. Dann trägt es Hooks für `SessionStart`, `UserPromptSubmit`, `Notification`, `Stop` und `SessionEnd` ein.
-   **Bestehende Hooks bleiben unverändert.**
-4. Das Hook-Skript (`~/.session-radar/hooks/session-radar-hook.js`, reines Node.js) schreibt pro Session eine
-   kleine Statusdatei nach `~/.session-radar/status/claude-code/`. Es gibt nichts aus, endet immer mit Exit-Code 0
-   und speichert **keine** Prompt- oder Antwortinhalte.
+1. A diff shows the planned change to `~/.claude/settings.json`.
+2. After you confirm, Session Radar creates a backup in `~/.session-radar/backups/`.
+3. It then adds hooks for `SessionStart`, `UserPromptSubmit`, `Notification`, `Stop` and `SessionEnd`.
+   **Existing hooks are left untouched.**
+4. The hook script (`~/.session-radar/hooks/session-radar-hook.js`, plain Node.js) writes one small status file
+   per session to `~/.session-radar/status/claude-code/`. It prints nothing, always exits with code 0
+   and stores **no** prompt or response content.
 
-Die Hooks wirken für neu gestartete bzw. fortgesetzte Sessions. Entfernen geht genauso über
-**Claude-Code-Hooks entfernen…**: Diff, Backup, nur die eigenen Einträge werden gelöscht.
-Ohne Hooks heißt die Ansicht „Sessions (ohne Hooks)“.
+The hooks take effect for newly started or resumed sessions. Removing them works the same way via
+**Remove Claude Code Hooks…**: diff, backup, and only Session Radar's own entries are deleted.
+Without hooks, the view is titled "Sessions (no hooks)".
 
-## Bedienung
+## Usage
 
-**Klick auf eine Session** markiert sie als gelesen und dann:
+**Clicking a session** marks it as read and then:
 
-| Session | Aktion |
+| Session | Action |
 |---|---|
-| VS-Code-Session aus dem aktuellen Workspace | öffnet sie über den offiziellen Deep-Link `vscode://anthropic.claude-code/open?session=<id>`; ein schon offener Tab wird fokussiert |
-| VS-Code-Session aus einem anderen Projekt | Auswahl: Projektfenster öffnen/fokussieren oder hier im Terminal fortsetzen |
-| laufende Terminal-Session im integrierten Terminal | fokussiert dieses Terminal |
-| beendete Session | `claude --resume <id>` in einem neuen Terminal im Projektordner |
+| VS Code session from the current workspace | opens it via the official deep link `vscode://anthropic.claude-code/open?session=<id>`; an already open tab is focused |
+| VS Code session from another project | choice: open/focus the project window, or resume here in a terminal |
+| running terminal session in the integrated terminal | focuses that terminal |
+| ended session | `claude --resume <id>` in a new terminal in the project folder |
 
-Ist eine Session noch aktiv (z. B. in einem anderen Fenster) und du wählst „Im Terminal fortsetzen“,
-fragt Session Radar nach: Zwei Prozesse auf derselben Session können den Verlauf durcheinanderbringen.
+If a session is still live (e.g. in another window) and you choose "Resume in Terminal",
+Session Radar asks first: two processes on the same session can mess up its history.
 
-**Titelleiste:** ✓✓ alle als gelesen markieren · Filter Workspace/alle · ⟳ aktualisieren ·
-`…` archivierte ein-/ausblenden, Hooks installieren/entfernen.
+**Title bar:** ✓✓ mark all as read · filter workspace/all · ⟳ refresh ·
+`…` show/hide archived, install/remove hooks.
 
-**Labels und Archiv** sind lokal. Sie verändern nichts in Claude Code und liegen in `~/.session-radar/annotations.json`.
+**Labels and archive** are local. They change nothing in Claude Code and are stored in `~/.session-radar/annotations.json`.
 
-## Wie der Status bestimmt wird
+## How the status is determined
 
-Drei Quellen, jede meldet eine Phase mit Zeitstempel. **Die neueste Meldung gewinnt; bei Gleichstand gilt
-Hooks > Prozessliste > Transkript.**
+Three sources, each reports a phase with a timestamp. **The newest report wins; on a tie the order is
+hooks > process registry > transcript.**
 
-| Quelle | Was sie liefert |
+| Source | What it provides |
 |---|---|
-| **Hooks** (`~/.session-radar/status/…`) | läuft / wartet auf Freigabe oder Eingabe / Turn beendet / Session beendet |
-| **Prozessliste** (`~/.claude/sessions/<pid>.json`) | lebt der Prozess? `busy` / `idle` |
-| **Transkript** (`~/.claude/projects/…/<id>.jsonl`) | Titel, Projekt, Branch, letzte Aktivität, ob der letzte Turn abgeschlossen ist |
+| **Hooks** (`~/.session-radar/status/…`) | running / waiting for approval or input / turn finished / session ended |
+| **Process registry** (`~/.claude/sessions/<pid>.json`) | is the process alive? `busy` / `idle` |
+| **Transcript** (`~/.claude/projects/…/<id>.jsonl`) | title, project, branch, last activity, whether the last turn has finished |
 
-| Gruppe | Bedeutung |
+| Group | Meaning |
 |---|---|
-| 🟢 **Läuft** | der Agent arbeitet gerade |
-| 🟡 **Wartet auf mich** | 🔐 Freigabe nötig · ❓ Eingabe nötig (nur mit Hooks) · ✉️ ungelesen: Antwort fertig, seitdem nicht im Radar angeklickt |
-| ⚪ **Idle / fertig** | gesehen oder beendet, letzte Aktivität < 24 h |
-| 💤 **Alt** | > 24 h ohne Aktivität |
+| 🟢 **Running** | the agent is working right now |
+| 🟡 **Waiting for me** | 🔐 needs approval · ❓ needs input (hooks only) · ✉️ unread: response finished, not clicked in the radar since |
+| ⚪ **Idle / done** | seen or ended, last activity < 24 h |
+| 💤 **Stale** | > 24 h without activity |
 
-Beim ersten Start gelten alle bis dahin fertigen Antworten als gelesen. „Ungelesen“ lässt sich in den
-Einstellungen abschalten.
+On first start, all responses finished up to that point count as read. "Unread" can be turned off in the
+settings.
 
-## Einstellungen
+## Settings
 
-| Einstellung | Standard | Bedeutung |
+| Setting | Default | Meaning |
 |---|---|---|
-| `sessionRadar.claudeDir` | leer | Claude-Konfigurationsordner; leer = `$CLAUDE_CONFIG_DIR` bzw. `~/.claude` |
-| `sessionRadar.maxAgeDays` | 30 | ältere Transkripte werden ignoriert |
-| `sessionRadar.staleAfterHours` | 24 | ab wann eine Session „alt“ ist |
-| `sessionRadar.runningTimeoutMinutes` | 30 | „läuft“ ohne neue Aktivität gilt danach als hängengeblieben |
-| `sessionRadar.unreadAsWaiting` | true | fertige, ungesehene Antworten als „wartet auf mich“ zählen |
+| `sessionRadar.claudeDir` | empty | Claude config folder; empty = `$CLAUDE_CONFIG_DIR` or `~/.claude` |
+| `sessionRadar.maxAgeDays` | 30 | older transcripts are ignored |
+| `sessionRadar.staleAfterHours` | 24 | when a session counts as "stale" |
+| `sessionRadar.runningTimeoutMinutes` | 30 | "running" without new activity counts as stuck after this |
+| `sessionRadar.unreadAsWaiting` | true | count finished, unseen responses as "waiting for me" |
 
-Die Umgebungsvariable `SESSION_RADAR_HOME` verlegt `~/.session-radar` (z. B. für Tests).
+The environment variable `SESSION_RADAR_HOME` relocates `~/.session-radar` (e.g. for tests).
 
-## Datenschutz und Sicherheit
+## Privacy and security
 
-- **Strikt lokal:** kein Netzwerkzugriff, keine Telemetrie.
-- **Transkripte werden nur gelesen**, und zwar nur Anfang und Ende jeder Datei. Die Transkript-Ansicht ist
-  eine schreibgeschützte virtuelle Ansicht ohne Speichern-Möglichkeit.
-- Die `.key`-Dateien in `~/.claude/sessions/` (Tokens) werden nie gelesen.
-- Die Statusschicht `~/.session-radar/` enthält keine Prompt- oder Antworttexte, nur Zustände, Zeitstempel,
-  Pfade und IDs.
-- Änderungen an `~/.claude/settings.json` erfolgen nur auf Knopfdruck, mit Diff, Bestätigung und Backup.
-  Wurde die Datei während des Dialogs geändert, wird nichts geschrieben.
-- Session-IDs werden geprüft, bevor sie in einen Terminal-Befehl gelangen.
+- **Strictly local:** no network access, no telemetry.
+- **Transcripts are only read**, and only the beginning and end of each file. The transcript view is
+  a read-only virtual document that cannot be saved.
+- The `.key` files in `~/.claude/sessions/` (tokens) are never read.
+- The status layer `~/.session-radar/` contains no prompt or response text, only states, timestamps,
+  paths and IDs.
+- Changes to `~/.claude/settings.json` only happen on request, with a diff, confirmation and backup.
+  If the file was changed while the dialog was open, nothing is written.
+- Session IDs are validated before they are passed to a terminal command.
 
-## Bekannte Grenzen
+## Known limitations
 
-- **Transkript-Format und Prozessliste sind nicht offiziell dokumentiert.** Laut Claude-Code-Doku können sie sich
-  mit jedem Release ändern. Der Parser ist tolerant (unbekannte Einträge werden ignoriert). Wenn nach einem
-  Claude-Update etwas fehlt, zuerst die Unit-Tests mit neuen anonymisierten Fixtures erweitern. Dokumentiert und
-  damit stabil ist nur der Hook-Weg.
-- Nach einer beantworteten Freigabe gibt es kein eigenes Hook-Event. „Wartet“ endet, sobald das Transkript
-  weiterläuft.
-- Ein Abbruch mit Esc löst keinen `Stop`-Hook aus. Das fängt die Prozessliste bzw. der Timeout ab.
-- Externe Terminalfenster (außerhalb von VS Code) können nicht fokussiert werden.
-- Wird eine PID nach einem Absturz von einem anderen Prozess wiederverwendet, kann eine Session kurz fälschlich als lebend gelten.
+- **The transcript format and the process registry are not officially documented.** According to the Claude Code
+  docs, they can change with any release. The parser is tolerant (unknown entries are ignored). If something is
+  missing after a Claude Code update, first extend the unit tests with new anonymized fixtures. Only the hook
+  route is documented and therefore stable.
+- There is no hook event for an answered permission prompt. "Waiting" ends as soon as the transcript
+  moves on.
+- Interrupting with Esc does not fire a `Stop` hook. The process registry or the timeout catches that.
+- External terminal windows (outside VS Code) cannot be focused.
+- If a PID is reused by another process after a crash, a session can briefly appear alive by mistake.
 
-## Entwicklung
+## Development
 
 ```powershell
 npm install
-npm run test:unit        # schnelle Unit-Tests (Mocha, ohne VS Code), Fixtures unter test/fixtures
-npm test                 # Integrationstest in einer VS-Code-Testinstanz (gegen Fixtures, nicht gegen echte Daten)
-npm run compile          # Typecheck + Lint + Build
-npm run package:vsix     # .vsix bauen
+npm run test:unit        # fast unit tests (Mocha, no VS Code), fixtures under test/fixtures
+npm test                 # integration test in a VS Code test instance (against fixtures, not real data)
+npm run compile          # type check + lint + build
+npm run package:vsix     # build the .vsix
 ```
 
-**Debuggen:** Projekt in VS Code öffnen, F5 → „Run Extension (Arbeitsordner)“. Im Extension Development Host
-öffnet sich ein echter Arbeitsordner. Nach Codeänderungen dort `Ctrl+R`.
+**Debugging:** open the project in VS Code, press F5. The first launch configuration opens this repository in the
+Extension Development Host; "Run Extension (choose folder)" asks for another folder. Session Radar reads from
+`~/.claude` either way; the folder only matters for the "current workspace only" filter. After code changes,
+press `Ctrl+R` in the Development Host.
 
-**Fixtures:** Nur anonymisierte, von Hand geschriebene Beispieldaten. `.gitignore` blockiert alle anderen `*.jsonl`.
+**Fixtures:** only anonymized, hand-written sample data. `.gitignore` blocks all other `*.jsonl` files.
 
-### Struktur
+### Structure
 
 ```
 src/
-├── extension.ts                    Einstieg: verdrahtet Provider, Store, Tree, Watcher, Commands
-├── core/                           ohne VS-Code-Abhängigkeit, voll unit-getestet
+├── extension.ts                    entry point: wires up providers, store, tree, watchers, commands
+├── core/                           no VS Code dependency, fully unit-tested
 │   ├── model.ts                    AgentSession, StatusSignals, …
-│   ├── provider.ts                 SessionProvider-Interface, ResumeHost, WatchHost
-│   ├── status.ts                   deriveStatus(): Signale → Status
-│   ├── SessionStore.ts             bündelt Provider + Annotationen
-│   ├── statusLayer.ts              liest ~/.session-radar/status (Format: docs/status-format.md)
-│   └── annotations.ts …            Labels/Archiv/gelesen, atomare Schreibzugriffe, Hilfsfunktionen
+│   ├── provider.ts                 SessionProvider interface, ResumeHost, WatchHost
+│   ├── status.ts                   deriveStatus(): signals → status
+│   ├── SessionStore.ts             combines providers + annotations
+│   ├── statusLayer.ts              reads ~/.session-radar/status (format: docs/status-format.md)
+│   └── annotations.ts …            labels/archive/read state, atomic writes, helpers
 ├── providers/
-│   ├── claude/                     ClaudeCodeProvider, Transkript-Parser, Prozessliste, Hook-Konfiguration
-│   └── codex/                      CodexProvider (Skelett)
-└── ui/                             TreeView, Commands, Hook-Installer, VS-Code-Hosts
-resources/hooks/session-radar-hook.js   Hook-Skript (wird nach ~/.session-radar/hooks kopiert)
-docs/status-format.md                   Format der Statusschicht für andere Oberflächen
+│   ├── claude/                     ClaudeCodeProvider, transcript parser, process registry, hook configuration
+│   └── codex/                      CodexProvider (skeleton)
+└── ui/                             tree view, commands, hook installer, VS Code hosts
+resources/hooks/session-radar-hook.js   hook script (copied to ~/.session-radar/hooks)
+docs/status-format.md                   status layer format for other front-ends
 ```
 
-## Einen neuen Provider hinzufügen
+## Adding a new provider
 
-Beispiel: ein Provider für einen Agenten „Foo“.
+Example: a provider for an agent called "Foo".
 
-**1. Agent-Typ registrieren** in `src/core/model.ts`:
+**1. Register the agent type** in `src/core/model.ts`:
 
 ```ts
 export type AgentKind = 'claude-code' | 'codex' | 'foo';
 ```
 
-**2. Provider schreiben** unter `src/providers/foo/FooProvider.ts`. Am einfachsten von `BaseSessionProvider`
-ableiten; dann ist die Standard-Statuslogik schon dabei:
+**2. Write the provider** in `src/providers/foo/FooProvider.ts`. The easiest way is to extend `BaseSessionProvider`,
+which already includes the default status logic:
 
 ```ts
 import { promises as fs } from 'fs';
@@ -214,7 +217,7 @@ import { readStatusDir } from '../../core/statusLayer';
 export class FooProvider extends BaseSessionProvider {
 	readonly agent = 'foo' as const;
 	readonly displayName = 'Foo Agent';
-	readonly iconId = 'robot';                          // Codicon-Name
+	readonly iconId = 'robot';                          // Codicon name
 
 	constructor(private readonly dataDir: string, private readonly statusDir: string) { super(); }
 
@@ -223,11 +226,11 @@ export class FooProvider extends BaseSessionProvider {
 	}
 
 	async discover(): Promise<AgentSession[]> {
-		const hooks = await readStatusDir(this.statusDir);  // optional: eigene Hooks → Statusschicht
+		const hooks = await readStatusDir(this.statusDir);  // optional: own hooks → status layer
 		const sessions: AgentSession[] = [];
-		// … Sessions des Agenten finden. Große Dateien nur teilweise lesen
-		//   (core/fileChunks.ts) und nach Größe/mtime cachen.
-		// Pro Session die Rohsignale füllen; den Status berechnet der Store:
+		// … find the agent's sessions. Read large files only partially
+		//   (core/fileChunks.ts) and cache by size/mtime.
+		// Fill in the raw signals per session; the store computes the status:
 		// sessions.push({ id, agent: this.agent, title, project, projectName: baseName(project),
 		//   branch, surface: 'cli', transcriptPath, status: 'idle', statusSource: 'transcript',
 		//   signals: { lastActivity, turnEndedAt, turnInProgress, process: {...}, hook: {...} } });
@@ -244,18 +247,18 @@ export class FooProvider extends BaseSessionProvider {
 }
 ```
 
-**Was ein Provider liefern muss:**
+**What a provider must implement:**
 
-| Methode | Aufgabe |
+| Method | Purpose |
 |---|---|
-| `isAvailable()` | ist der Agent auf diesem Rechner installiert bzw. hat er Daten? |
-| `discover()` | alle Sessions mit Rohsignalen; muss wiederholt billig sein (Cache) |
-| `watch()` | Datei-Watcher registrieren; bei Änderungen `onChange()` rufen (der Store debounced) |
-| `getStatus()` | geerbt (`deriveStatus`); nur überschreiben, wenn der Agent eigene Zustände hat |
-| `resume()` | Session fortsetzen bzw. fokussieren, ausschließlich über `ResumeHost` (keine direkte VS-Code-API) |
-| `resumeInTerminal()` | optional; explizites „Im Terminal fortsetzen“ |
+| `isAvailable()` | is the agent installed on this machine, or does it have data? |
+| `discover()` | all sessions with raw signals; must be cheap to call repeatedly (cache) |
+| `watch()` | register file watchers; call `onChange()` on changes (the store debounces) |
+| `getStatus()` | inherited (`deriveStatus`); only override if the agent has its own states |
+| `resume()` | resume or focus a session, exclusively via `ResumeHost` (no direct VS Code API) |
+| `resumeInTerminal()` | optional; explicit "Resume in Terminal" |
 
-**3. Registrieren** in `src/extension.ts`:
+**3. Register it** in `src/extension.ts`:
 
 ```ts
 const providers = [
@@ -265,14 +268,18 @@ const providers = [
 ];
 ```
 
-**4. Live-Status (optional, empfohlen):** Hat der Agent Hooks oder Notify-Callbacks, lass sie Statusdateien im
-dokumentierten Format nach `~/.session-radar/status/foo/<sessionId>.json` schreiben
-([docs/status-format.md](docs/status-format.md)). `resources/hooks/session-radar-hook.js` ist eine Vorlage.
-Ohne Hooks: Prozess-Liveness über `signals.process` und Aktivität über `signals.lastActivity`.
+**4. Live status (optional, recommended):** if the agent has hooks or notify callbacks, have them write status
+files in the documented format to `~/.session-radar/status/foo/<sessionId>.json`
+([docs/status-format.md](docs/status-format.md)). `resources/hooks/session-radar-hook.js` serves as a template.
+Without hooks: process liveness via `signals.process` and activity via `signals.lastActivity`.
 
-**5. Tests:** anonymisierte Fixtures unter `test/fixtures/foo/` anlegen und Parser-/Discovery-Tests unter
-`src/test/unit/` schreiben (siehe `transcript.test.ts`, `provider.test.ts`). Statuslogik und Provider laufen
-ohne VS Code und lassen sich daher mit Mocha testen.
+**5. Tests:** add anonymized fixtures under `test/fixtures/foo/` and write parser/discovery tests under
+`src/test/unit/` (see `transcript.test.ts`, `provider.test.ts`). Status logic and providers run
+without VS Code and can therefore be tested with Mocha.
 
-**Checkliste:** strikt lokal (kein Netzwerk) · Agent-Daten nur lesen · keine Inhalte in die Statusschicht ·
-IDs validieren, bevor sie in Shell-Befehle gehen · Windows-Pfade testen.
+**Checklist:** strictly local (no network) · only read agent data · no content in the status layer ·
+validate IDs before they go into shell commands · test Windows paths.
+
+## License
+
+[MIT](LICENSE)

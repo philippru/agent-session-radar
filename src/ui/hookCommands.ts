@@ -53,7 +53,7 @@ function parseSettings(text: string | undefined): unknown {
 	try {
 		return JSON.parse(text);
 	} catch {
-		throw new Error('~/.claude/settings.json ist kein gültiges JSON. Bitte zuerst manuell prüfen — es wurde nichts geändert.');
+		throw new Error('~/.claude/settings.json is not valid JSON. Please check it manually first — nothing was changed.');
 	}
 }
 
@@ -94,8 +94,8 @@ export function registerHookCommands(context: vscode.ExtensionContext, paths: Ho
 
 	/** Shared flow: show diff, confirm, back up, verify unchanged, write. */
 	const applyChange = async (original: string | undefined, nextText: string, title: string, question: string, confirmLabel: string) => {
-		const left = original === undefined ? preview.set('settings.json (neu)', '') : vscode.Uri.file(paths.settingsFile);
-		const right = preview.set('settings.json (Vorschau)', nextText);
+		const left = original === undefined ? preview.set('settings.json (new)', '') : vscode.Uri.file(paths.settingsFile);
+		const right = preview.set('settings.json (preview)', nextText);
 		await vscode.commands.executeCommand('vscode.diff', left, right, title, { preview: true });
 		const ok = await vscode.window.showWarningMessage(question, { modal: true }, confirmLabel);
 		if (ok !== confirmLabel) {
@@ -103,7 +103,7 @@ export function registerHookCommands(context: vscode.ExtensionContext, paths: Ho
 		}
 		// Abort if Claude Code or the user changed the file while the diff was open.
 		if (await readIfExists(paths.settingsFile) !== original) {
-			throw new Error('settings.json wurde in der Zwischenzeit geändert. Bitte erneut ausführen — es wurde nichts geschrieben.');
+			throw new Error('settings.json was changed in the meantime. Please run the command again — nothing was written.');
 		}
 		let backup: string | undefined;
 		if (original !== undefined) {
@@ -133,13 +133,13 @@ export function registerHookCommands(context: vscode.ExtensionContext, paths: Ho
 		await fs.copyFile(paths.bundledScript, paths.installedScript);
 
 		if (plan.added.length === 0 && plan.updated.length === 0) {
-			void vscode.window.showInformationMessage('Session Radar: Die Hooks sind bereits eingetragen.');
+			void vscode.window.showInformationMessage('Session Radar: The hooks are already installed.');
 			await updateContext();
 			return;
 		}
 		if (!await nodeAvailable()) {
 			const go = await vscode.window.showWarningMessage(
-				'"node" wurde im PATH nicht gefunden. Die Hooks brauchen Node.js. Trotzdem eintragen?', { modal: true }, 'Trotzdem eintragen');
+				'"node" was not found in PATH. The hooks need Node.js. Install them anyway?', { modal: true }, 'Install Anyway');
 			if (!go) {
 				return;
 			}
@@ -148,17 +148,17 @@ export function registerHookCommands(context: vscode.ExtensionContext, paths: Ho
 		const result = await applyChange(
 			original,
 			serializeLike(original, plan.next),
-			'Claude settings.json: Session-Radar-Hooks hinzufügen',
-			`Session Radar trägt Hooks für ${events} in ~/.claude/settings.json ein.\n\nBestehende Hooks bleiben unverändert. Vorher wird ein Backup in ~/.session-radar/backups angelegt. Die Änderung siehst du im geöffneten Diff.`,
-			'Hooks installieren',
+			'Claude settings.json: add Session Radar hooks',
+			`Session Radar will add hooks for ${events} to ~/.claude/settings.json.\n\nExisting hooks are left untouched. A backup is created in ~/.session-radar/backups first. The change is shown in the open diff.`,
+			'Install Hooks',
 		);
 		if (!result) {
 			return;
 		}
 		await updateContext();
 		const choice = await vscode.window.showInformationMessage(
-			'Session Radar: Hooks installiert. Sie wirken für neu gestartete bzw. fortgesetzte Claude-Code-Sessions.',
-			...(result.backup ? ['Backup anzeigen'] : []));
+			'Session Radar: Hooks installed. They take effect for newly started or resumed Claude Code sessions.',
+			...(result.backup ? ['Show Backup'] : []));
 		if (choice && result.backup) {
 			await vscode.commands.executeCommand('revealFileInOS', vscode.Uri.file(result.backup));
 		}
@@ -168,20 +168,20 @@ export function registerHookCommands(context: vscode.ExtensionContext, paths: Ho
 		const original = await readIfExists(paths.settingsFile);
 		const plan = planUninstall(parseSettings(original));
 		if (plan.removed.length === 0) {
-			void vscode.window.showInformationMessage(`Session Radar: Keine Hooks mit ${HOOK_SCRIPT_NAME} gefunden.`);
+			void vscode.window.showInformationMessage(`Session Radar: No hooks using ${HOOK_SCRIPT_NAME} found.`);
 			await updateContext();
 			return;
 		}
 		const result = await applyChange(
 			original,
 			serializeLike(original, plan.next),
-			'Claude settings.json: Session-Radar-Hooks entfernen',
-			`Session Radar entfernt seine Hooks (${plan.removed.join(', ')}) aus ~/.claude/settings.json.\n\nAndere Hooks bleiben unverändert. Vorher wird ein Backup angelegt.`,
-			'Hooks entfernen',
+			'Claude settings.json: remove Session Radar hooks',
+			`Session Radar will remove its hooks (${plan.removed.join(', ')}) from ~/.claude/settings.json.\n\nOther hooks are left untouched. A backup is created first.`,
+			'Remove Hooks',
 		);
 		if (result) {
 			await updateContext();
-			void vscode.window.showInformationMessage('Session Radar: Hooks entfernt. Ohne Hooks nutzt Session Radar Prozessliste und Transkripte.');
+			void vscode.window.showInformationMessage('Session Radar: Hooks removed. Without hooks, Session Radar uses the process registry and transcripts.');
 		}
 	})));
 }

@@ -3,7 +3,7 @@
 // NOTE: Not officially documented (internal to Claude Code, observed in 2.1.2xx). One file per
 // running interactive process, removed on exit, e.g.:
 //   {"pid":14256,"sessionId":"<uuid>","cwd":"c:\\...","kind":"interactive",
-//    "entrypoint":"claude-vscode","name":"frnis-ai-2e","nameSource":"derived",
+//    "entrypoint":"claude-vscode","name":"my-app-2e","nameSource":"derived",
 //    "status":"idle"|"busy","updatedAt":<ms>,"statusUpdatedAt":<ms>, ...}
 // Files of crashed processes can stay behind, so liveness is checked via the PID.
 

@@ -22,7 +22,7 @@ export interface CommandDeps {
 class TranscriptContentProvider implements vscode.TextDocumentContentProvider {
 	async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
 		if (!uri.fsPath.endsWith('.jsonl')) {
-			throw new Error('Nur Transkripte (*.jsonl) können angezeigt werden.');
+			throw new Error('Only transcripts (*.jsonl) can be shown.');
 		}
 		return fs.readFile(uri.fsPath, 'utf8');
 	}
@@ -78,9 +78,9 @@ export function registerCommands(context: vscode.ExtensionContext, deps: Command
 
 	reg('sessionRadar.rename', async (s: AgentSession) => {
 		const value = await vscode.window.showInputBox({
-			title: 'Session umbenennen (nur lokal in Session Radar)',
+			title: 'Rename session (locally in Session Radar only)',
 			value: s.label ?? s.title,
-			prompt: `Originaltitel: ${s.title}. Leer lassen, um das lokale Label zu entfernen.`,
+			prompt: `Original title: ${s.title}. Leave empty to remove the local label.`,
 		});
 		if (value !== undefined) {
 			await annotate(s, { label: value.trim() && value.trim() !== s.title ? value.trim() : undefined });
@@ -110,7 +110,7 @@ export function registerCommands(context: vscode.ExtensionContext, deps: Command
 
 	reg('sessionRadar.copySessionId', async (s: AgentSession) => {
 		await vscode.env.clipboard.writeText(s.id);
-		vscode.window.setStatusBarMessage('Session-ID kopiert', 2000);
+		vscode.window.setStatusBarMessage('Session ID copied', 2000);
 	});
 }
 

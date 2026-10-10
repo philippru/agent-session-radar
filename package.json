@@ -1,7 +1,7 @@
 {
   "name": "session-radar",
   "displayName": "Session Radar",
-  "description": "Übersicht über alle KI-Coding-Agent-Sessions (Claude Code, später Codex & Co.): was läuft, was wartet auf dich, was ist fertig.",
+  "description": "Overview of all your AI coding agent sessions (Claude Code, later Codex and others): what is running, what is waiting for you, what is done.",
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.140.0"
@@ -36,104 +36,104 @@
     "viewsWelcome": [
       {
         "view": "sessionRadar.sessions",
-        "contents": "Keine Sessions gefunden.\n[Aktualisieren](command:sessionRadar.refresh)\nFür einen genaueren Live-Status (z. B. offene Freigaben) kannst du Hooks in Claude Code eintragen:\n[Hooks installieren…](command:sessionRadar.installHooks)"
+        "contents": "No sessions found.\n[Refresh](command:sessionRadar.refresh)\nFor a more accurate live status (e.g. open permission prompts), you can add hooks to Claude Code:\n[Install Hooks…](command:sessionRadar.installHooks)"
       }
     ],
     "commands": [
       {
         "command": "sessionRadar.refresh",
-        "title": "Aktualisieren",
+        "title": "Refresh",
         "category": "Session Radar",
         "icon": "$(refresh)"
       },
       {
         "command": "sessionRadar.scopeWorkspace",
-        "title": "Nur aktuellen Workspace zeigen",
+        "title": "Show Current Workspace Only",
         "category": "Session Radar",
         "icon": "$(filter)"
       },
       {
         "command": "sessionRadar.scopeAll",
-        "title": "Alle Projekte zeigen",
+        "title": "Show All Projects",
         "category": "Session Radar",
         "icon": "$(filter-filled)"
       },
       {
         "command": "sessionRadar.markAllSeen",
-        "title": "Alle als gelesen markieren",
+        "title": "Mark All as Read",
         "category": "Session Radar",
         "icon": "$(check-all)"
       },
       {
         "command": "sessionRadar.showArchived",
-        "title": "Archivierte Sessions einblenden",
+        "title": "Show Archived Sessions",
         "category": "Session Radar"
       },
       {
         "command": "sessionRadar.hideArchived",
-        "title": "Archivierte Sessions ausblenden",
+        "title": "Hide Archived Sessions",
         "category": "Session Radar"
       },
       {
         "command": "sessionRadar.installHooks",
-        "title": "Claude-Code-Hooks installieren…",
+        "title": "Install Claude Code Hooks…",
         "category": "Session Radar",
         "icon": "$(plug)"
       },
       {
         "command": "sessionRadar.uninstallHooks",
-        "title": "Claude-Code-Hooks entfernen…",
+        "title": "Remove Claude Code Hooks…",
         "category": "Session Radar"
       },
       {
         "command": "sessionRadar.open",
-        "title": "Öffnen / Fortsetzen",
+        "title": "Open / Resume",
         "category": "Session Radar",
         "icon": "$(go-to-file)"
       },
       {
         "command": "sessionRadar.resumeInTerminal",
-        "title": "Im Terminal fortsetzen",
+        "title": "Resume in Terminal",
         "category": "Session Radar",
         "icon": "$(terminal)"
       },
       {
         "command": "sessionRadar.rename",
-        "title": "Umbenennen (lokal)…",
+        "title": "Rename (Local)…",
         "category": "Session Radar",
         "icon": "$(edit)"
       },
       {
         "command": "sessionRadar.markSeen",
-        "title": "Als gelesen markieren",
+        "title": "Mark as Read",
         "category": "Session Radar",
         "icon": "$(check)"
       },
       {
         "command": "sessionRadar.archive",
-        "title": "Archivieren / Ausblenden",
+        "title": "Archive / Hide",
         "category": "Session Radar",
         "icon": "$(archive)"
       },
       {
         "command": "sessionRadar.unarchive",
-        "title": "Wiederherstellen",
+        "title": "Unarchive",
         "category": "Session Radar"
       },
       {
         "command": "sessionRadar.showTranscript",
-        "title": "Transkript anzeigen (schreibgeschützt)",
+        "title": "Show Transcript (Read-Only)",
         "category": "Session Radar",
         "icon": "$(file-text)"
       },
       {
         "command": "sessionRadar.revealTranscript",
-        "title": "Transkript im Explorer zeigen",
+        "title": "Reveal Transcript in File Explorer",
         "category": "Session Radar"
       },
       {
         "command": "sessionRadar.copySessionId",
-        "title": "Session-ID kopieren",
+        "title": "Copy Session ID",
         "category": "Session Radar"
       }
     ],
@@ -282,30 +282,30 @@
         "sessionRadar.claudeDir": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Claude-Code-Konfigurationsordner. Leer = `$CLAUDE_CONFIG_DIR` bzw. `~/.claude`."
+          "markdownDescription": "Claude Code config folder. Empty = `$CLAUDE_CONFIG_DIR` or `~/.claude`."
         },
         "sessionRadar.maxAgeDays": {
           "type": "number",
           "default": 30,
           "minimum": 1,
-          "description": "Sessions, deren Transkript länger als so viele Tage nicht geändert wurde, werden ignoriert."
+          "description": "Sessions whose transcript has not changed for more than this many days are ignored."
         },
         "sessionRadar.staleAfterHours": {
           "type": "number",
           "default": 24,
           "minimum": 1,
-          "description": "Ab so vielen Stunden ohne Aktivität gilt eine Session als \"Alt\"."
+          "description": "After this many hours without activity, a session counts as \"Stale\"."
         },
         "sessionRadar.runningTimeoutMinutes": {
           "type": "number",
           "default": 30,
           "minimum": 1,
-          "description": "Meldet eine Session so lange \"läuft\" ohne neue Aktivität, gilt sie als hängengeblieben bzw. fertig."
+          "description": "If a session reports \"running\" for this many minutes without new activity, it is considered stuck or done."
         },
         "sessionRadar.unreadAsWaiting": {
           "type": "boolean",
           "default": true,
-          "description": "Fertige, noch nicht angesehene Antworten als \"Wartet auf mich\" zählen."
+          "description": "Count finished responses you have not looked at yet as \"Waiting for me\"."
         }
       }
     }
@@ -324,7 +324,7 @@
     "lint": "eslint src",
     "test": "vscode-test",
     "test:unit": "tsc -p . --outDir out && mocha --ui tdd \"out/test/unit/**/*.test.js\"",
-    "package:vsix": "vsce package --no-dependencies --skip-license --allow-missing-repository --no-rewrite-relative-links -o session-radar.vsix"
+    "package:vsix": "vsce package --no-dependencies --allow-missing-repository --no-rewrite-relative-links -o session-radar.vsix"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -345,7 +345,7 @@
     "serialize-javascript": "^7.0.6"
   },
   "publisher": "local",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "keywords": [
     "claude",

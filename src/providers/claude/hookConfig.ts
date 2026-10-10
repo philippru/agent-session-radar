@@ -31,7 +31,7 @@ function asObject(v: unknown, what: string): Json {
 		return {};
 	}
 	if (!v || typeof v !== 'object' || Array.isArray(v)) {
-		throw new Error(`Unerwartetes Format in settings.json: "${what}" ist kein Objekt.`);
+		throw new Error(`Unexpected format in settings.json: "${what}" is not an object.`);
 	}
 	return v as Json;
 }
@@ -58,7 +58,7 @@ export function planInstall(settings: unknown, command: string): InstallPlan {
 	for (const ev of HOOK_EVENTS) {
 		const groups = hooks[ev] ?? [];
 		if (!Array.isArray(groups)) {
-			throw new Error(`Unerwartetes Format in settings.json: "hooks.${ev}" ist keine Liste.`);
+			throw new Error(`Unexpected format in settings.json: "hooks.${ev}" is not a list.`);
 		}
 		const ours = groups.flatMap(g => (Array.isArray(g?.hooks) ? (g.hooks as HookHandler[]) : [])).filter(isOurs);
 		if (ours.length === 0) {

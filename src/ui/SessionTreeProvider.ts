@@ -9,29 +9,29 @@ export type Scope = 'all' | 'workspace';
 interface GroupDef { status: SessionStatus; label: string; expanded: boolean }
 
 const GROUPS: GroupDef[] = [
-	{ status: 'running', label: '🟢 Läuft', expanded: true },
-	{ status: 'waiting', label: '🟡 Wartet auf mich', expanded: true },
-	{ status: 'idle', label: '⚪ Idle / fertig', expanded: true },
-	{ status: 'stale', label: '💤 Alt', expanded: false },
+	{ status: 'running', label: '🟢 Running', expanded: true },
+	{ status: 'waiting', label: '🟡 Waiting for me', expanded: true },
+	{ status: 'idle', label: '⚪ Idle / done', expanded: true },
+	{ status: 'stale', label: '💤 Stale', expanded: false },
 ];
 
 const WAITING_LABEL: Record<string, string> = {
-	permission: '🔐 Freigabe nötig',
-	input: '❓ Eingabe nötig',
-	unread: '✉️ ungelesen',
+	permission: '🔐 Needs approval',
+	input: '❓ Needs input',
+	unread: '✉️ Unread',
 };
 
 const SURFACE_LABEL: Record<string, string> = {
 	vscode: 'VS Code',
 	cli: 'Terminal',
-	desktop: 'Desktop-App',
-	unknown: 'unbekannt',
+	desktop: 'Desktop app',
+	unknown: 'unknown',
 };
 
 const SOURCE_LABEL: Record<string, string> = {
-	hook: 'Hooks',
-	process: 'Prozessliste',
-	transcript: 'Transkript',
+	hook: 'hooks',
+	process: 'process registry',
+	transcript: 'transcript',
 };
 
 export class GroupNode {
@@ -114,10 +114,10 @@ export class SessionTreeProvider implements vscode.TreeDataProvider<Node> {
 		// Matched by `viewItem =~ /…/` in package.json menus.
 		item.contextValue = `session;agent=${s.agent};status=${s.status};reason=${s.waitingReason ?? ''};archived=${s.archived ? 1 : 0};transcript=${s.transcriptPath ? 1 : 0}`;
 		if (s.archived) {
-			parts.unshift('🗄️ archiviert');
+			parts.unshift('🗄️ archived');
 			item.description = parts.join(' · ');
 		}
-		item.command = { command: 'sessionRadar.open', title: 'Öffnen', arguments: [s] };
+		item.command = { command: 'sessionRadar.open', title: 'Open', arguments: [s] };
 		return item;
 	}
 
@@ -126,21 +126,21 @@ export class SessionTreeProvider implements vscode.TreeDataProvider<Node> {
 		const esc = (t: string) => t.replace(/([\\`*_{}[\]()#+\-.!|<>])/g, '\\$1');
 		md.appendMarkdown(`**${esc(s.label ?? s.title)}**\n\n`);
 		if (s.label) {
-			md.appendMarkdown(`_Originaltitel:_ ${esc(s.title)}\n\n`);
+			md.appendMarkdown(`_Original title:_ ${esc(s.title)}\n\n`);
 		}
 		const status = GROUPS.find(g => g.status === s.status)?.label ?? s.status;
 		const waiting = s.status === 'waiting' && s.waitingReason ? ` (${WAITING_LABEL[s.waitingReason]})` : '';
 		const rows: [string, string][] = [
-			['Status', `${status}${waiting} — Quelle: ${SOURCE_LABEL[s.statusSource]}`],
+			['Status', `${status}${waiting} — source: ${SOURCE_LABEL[s.statusSource]}`],
 			['Agent', `${agentName}${s.agentVersion ? ' ' + s.agentVersion : ''} · ${SURFACE_LABEL[s.surface]}`],
-			['Projekt', s.project],
+			['Project', s.project],
 			['Branch', s.branch ?? '–'],
-			['Zuletzt aktiv', `${formatRelative(s.signals.lastActivity, now)} (${new Date(s.signals.lastActivity).toLocaleString()})`],
+			['Last active', `${formatRelative(s.signals.lastActivity, now)} (${new Date(s.signals.lastActivity).toLocaleString()})`],
 		];
 		if (s.signals.process?.pid) {
-			rows.push(['Prozess', `PID ${s.signals.process.pid} (${s.signals.process.alive ? 'läuft' : 'beendet'})`]);
+			rows.push(['Process', `PID ${s.signals.process.pid} (${s.signals.process.alive ? 'running' : 'exited'})`]);
 		}
-		rows.push(['Session-ID', s.id]);
+		rows.push(['Session ID', s.id]);
 		for (const [k, v] of rows) {
 			md.appendMarkdown(`${k}: ${esc(v)}  \n`);
 		}

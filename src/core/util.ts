@@ -44,22 +44,22 @@ export function debounce(fn: () => void, waitMs: number, maxWaitMs?: number): { 
 	return debounced;
 }
 
-/** "vor 5 Min." style relative time (German UI). */
+/** "5 min ago" style relative time. */
 export function formatRelative(then: number, now: number): string {
 	const sec = Math.max(0, Math.round((now - then) / 1000));
 	if (sec < 45) {
-		return 'gerade eben';
+		return 'just now';
 	}
 	const min = Math.round(sec / 60);
 	if (min < 60) {
-		return `vor ${min} Min.`;
+		return `${min} min ago`;
 	}
 	const h = Math.round(min / 60);
 	if (h < 24) {
-		return `vor ${h} Std.`;
+		return `${h} h ago`;
 	}
 	const d = Math.round(h / 24);
-	return d === 1 ? 'vor 1 Tag' : `vor ${d} Tagen`;
+	return d === 1 ? '1 day ago' : `${d} days ago`;
 }
 
 /** Normalize a filesystem path for comparisons (case-insensitive drive/path on Windows). */

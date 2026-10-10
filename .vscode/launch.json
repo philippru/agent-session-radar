@@ -5,15 +5,15 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			// Default (first entry = F5): opens the Dev Host with a real working folder, so the
-			// extension can be tested against real Claude Code sessions. Session Radar itself reads
-			// from ~/.claude; the folder only matters for the "current workspace only" filter.
-			"name": "Run Extension (frnis-ai)",
+			// Default (first entry = F5): opens the Dev Host with this repository as its folder.
+			// Session Radar itself reads from ~/.claude; the folder only matters for the
+			// "current workspace only" filter.
+			"name": "Run Extension",
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"${userHome}/frnis.at/frnis-ai"
+				"${workspaceFolder}"
 			],
 			"outFiles": [
 				"${workspaceFolder}/dist/**/*.js"
@@ -22,7 +22,7 @@
 		},
 		{
 			// Asks for the folder. Note: if the input box loses focus, the launch is cancelled silently.
-			"name": "Run Extension (Ordner wählen)",
+			"name": "Run Extension (choose folder)",
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
@@ -35,7 +35,7 @@
 			"preLaunchTask": "${defaultBuildTask}"
 		},
 		{
-			"name": "Run Extension (leeres Fenster)",
+			"name": "Run Extension (empty window)",
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
@@ -51,8 +51,7 @@
 		{
 			"id": "devHostFolder",
 			"type": "promptString",
-			"description": "Ordner, der im Extension Development Host geöffnet wird",
-			"default": "C:\\Users\\phili\\frnis.at\\frnis-ai"
+			"description": "Folder to open in the Extension Development Host"
 		}
 	]
 }

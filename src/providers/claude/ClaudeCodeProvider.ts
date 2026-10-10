@@ -113,9 +113,9 @@ export class ClaudeCodeProvider extends BaseSessionProvider {
 				await host.openUri(`${host.uriScheme}://${CLAUDE_VSCODE_EXTENSION}/open?session=${encodeURIComponent(session.id)}`);
 				return;
 			}
-			const choice = await host.pick('Diese Session gehört zu einem anderen Projekt', [
-				{ id: 'window', label: '$(window) Projektfenster öffnen bzw. fokussieren', detail: session.project },
-				{ id: 'terminal', label: '$(terminal) Hier im Terminal fortsetzen (claude --resume)' },
+			const choice = await host.pick('This session belongs to another project', [
+				{ id: 'window', label: '$(window) Open or focus the project window', detail: session.project },
+				{ id: 'terminal', label: '$(terminal) Resume here in a terminal (claude --resume)' },
 			]);
 			if (choice === 'window') {
 				await host.openFolder(session.project);
@@ -135,10 +135,10 @@ export class ClaudeCodeProvider extends BaseSessionProvider {
 	async resumeInTerminal(session: AgentSession, host: ResumeHost): Promise<void> {
 		const proc = session.signals.process;
 		if (proc?.alive) {
-			const where = session.surface === 'vscode' ? 'in einem VS-Code-Tab' : session.surface === 'desktop' ? 'in der Desktop-App' : 'in einem anderen Terminal';
+			const where = session.surface === 'vscode' ? 'in a VS Code tab' : session.surface === 'desktop' ? 'in the desktop app' : 'in another terminal';
 			const ok = await host.confirm(
-				`Diese Session läuft bereits ${where} (PID ${proc.pid}). Ein zweiter Prozess auf derselben Session kann zu durcheinandergeratenen Verläufen führen. Trotzdem im Terminal fortsetzen?`,
-				'Trotzdem fortsetzen');
+				`This session is already running ${where} (PID ${proc.pid}). A second process on the same session can mess up its history. Resume in a terminal anyway?`,
+				'Resume Anyway');
 			if (!ok) {
 				return;
 			}

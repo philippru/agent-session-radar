@@ -15,10 +15,10 @@ suite('util', () => {
 
 	test('formatRelative', () => {
 		const now = 1_000_000_000;
-		assert.strictEqual(formatRelative(now - 10_000, now), 'gerade eben');
-		assert.strictEqual(formatRelative(now - 5 * 60_000, now), 'vor 5 Min.');
-		assert.strictEqual(formatRelative(now - 3 * 3600_000, now), 'vor 3 Std.');
-		assert.strictEqual(formatRelative(now - 26 * 3600_000, now), 'vor 1 Tag');
+		assert.strictEqual(formatRelative(now - 10_000, now), 'just now');
+		assert.strictEqual(formatRelative(now - 5 * 60_000, now), '5 min ago');
+		assert.strictEqual(formatRelative(now - 3 * 3600_000, now), '3 h ago');
+		assert.strictEqual(formatRelative(now - 26 * 3600_000, now), '1 day ago');
 	});
 
 	test('debounce coalesces bursts but honors maxWait', async () => {
